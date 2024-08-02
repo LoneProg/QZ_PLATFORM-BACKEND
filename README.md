@@ -126,4 +126,5 @@ QzPlatform is developed and maintained by Abdulhakeem Abdullahi, a Backend Devel
 
 ***
 Thank you for using QzPlatform!
+
 ![QzPlatform Logo](QzPlatformLogo.jpg)
