@@ -1,0 +1,41 @@
+{
+  "name": "qz_platform-backend",
+  "version": "1.0.0",
+  "description": "Implementation of Backend Development API for QzPlatform",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js`"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ATBTECHhub/QZ_PLATFORM-BACKEND.git"
+  },
+  "keywords": [
+    "backend",
+    "enhanced",
+    "Assessement"
+  ],
+  "author": "Abdulhakeem Abdullahi, Olubunmi Oluwagbemisola",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ATBTECHhub/QZ_PLATFORM-BACKEND/issues"
+  },
+  "homepage": "https://github.com/ATBTECHhub/QZ_PLATFORM-BACKEND#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.1.0",
+    "helmet": "^7.1.0",
+    "http-errors": "^2.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mocha": "^10.7.0",
+    "mongoose": "^8.5.2",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.4"
+  }
+}
