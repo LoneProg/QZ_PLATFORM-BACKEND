@@ -1,17 +1,18 @@
 const express = require("express");
+const errorHandler = require("./middlewares/errorHandler");
 const dotenv = require("dotenv").config();
 
-
 //configuring server
-const server = express();
+const app = express();
 const port = process.env.PORT
 
-//Basic route 
-server.get('/', (req, res) => {
-    res.send("Hello World");
-})
+//Middleware Configuration
+app.use(express.json());
+app.use("/api/user", require("./routes/userRoutes")); 
+app.use(errorHandler);
+
 
 //running Server
-server.listen(port, () =>  {
+app.listen(port, () =>  {
     console.log(`Server running on Port ${port}`);
 });
