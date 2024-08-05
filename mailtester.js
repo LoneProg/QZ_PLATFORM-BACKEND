@@ -29,6 +29,18 @@ const mailOptions = {
     }
 };
 
+const sendMail = async (transporter, mailOptions) => {
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log("Email Sent", info.response)
+    } catch {
+        console.error("Error sending email", error)
+
+    }
+}
+
+sendMail(transporter, mailOptions);
+
 transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
         console.error("Error sending email:", error);
