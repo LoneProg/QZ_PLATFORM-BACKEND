@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 require('dotenv').config();
-const path = require("path")
+const path = require("path");
+const {transporter, sendMail} = require("./utils/sendEmail");
 
 const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -41,10 +42,10 @@ const sendMail = async (transporter, mailOptions) => {
 
 sendMail(transporter, mailOptions);
 
-transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-        console.error("Error sending email:", error);
-    } else {
-        console.log("Email sent:", info.response);
-    }
-});
+// transporter.sendMail(mailOptions, (error, info) => {
+//     if (error) {
+//         console.error("Error sending email:", error);
+//     } else {
+//         console.log("Email sent:", info.response);
+//     }
+// });

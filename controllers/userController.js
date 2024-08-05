@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/users");
+const { transporter, sendMail } = require("../utils/sendEmail");
 
 //@desc Create User
 //@route POST /api/users
@@ -44,13 +45,7 @@ const createUser = asyncHandler(async (req, res) => {
             text: `Hi ${name},\n\nYour account has been created successfully.\n\nRegards,\nQzPlatform Team`
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log("Error sending email:", error);
-            } else {
-                console.log("Email sent:", info.response);
-            }
-        });
+       sendMail(transporter, mailOptions);
         
     } else {
         res.status(400);
@@ -108,13 +103,7 @@ const updateUser = asyncHandler(async (req, res) => {
             text: `Hi ${user.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.log("Error sending email:", error);
-            } else {
-                console.log("Email sent:", info.response);
-            }
-        });
+        sendMail(transporter, mailOptions);
     } else {
         res.status(404);
         throw new Error("User not found");
