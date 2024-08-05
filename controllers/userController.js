@@ -36,6 +36,21 @@ const createUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role
         });
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Welcome to QzPlatform',
+            text: `Hi ${name},\n\nYour account has been created successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log("Error sending email:", error);
+            } else {
+                console.log("Email sent:", info.response);
+            }
+        });
         
     } else {
         res.status(400);
@@ -79,10 +94,26 @@ const updateUser = asyncHandler(async (req, res) => {
 
         const updatedUser = await user.save();
         res.json({
+            message : "User Updated Successfully",
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role
+        });
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: user.email,
+            subject: 'Account Updated',
+            text: `Hi ${user.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log("Error sending email:", error);
+            } else {
+                console.log("Email sent:", info.response);
+            }
         });
     } else {
         res.status(404);
