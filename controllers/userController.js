@@ -1,6 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const User = require("../models/users");
 const { transporter, sendMail } = require("../utils/sendEmail");
+const User = require("../models/Users");
 
 //@desc Create User
 //@route POST /api/users
