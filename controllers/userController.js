@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const { transporter, sendMail } = require("../utils/sendEmail");
 const User = require("../models/Users");
 
 //@desc Create User
@@ -36,6 +37,15 @@ const createUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role
         });
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Welcome to QzPlatform',
+            text: `Hi ${name},\n\nYour account has been created successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+       sendMail(transporter, mailOptions);
         
     } else {
         res.status(400);
@@ -79,11 +89,21 @@ const updateUser = asyncHandler(async (req, res) => {
 
         const updatedUser = await user.save();
         res.json({
+            message : "User Updated Successfully",
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role
         });
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: user.email,
+            subject: 'Account Updated',
+            text: `Hi ${user.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+        sendMail(transporter, mailOptions);
     } else {
         res.status(404);
         throw new Error("User not found");
