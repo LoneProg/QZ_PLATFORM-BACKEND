@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const { body, validationResult } = require('express-validator');
 const Group = require('../models/groups');
 const User = require('../models/Users');
+const { sendMail } = require('../utils/sendEmail');
 
 // @Desc    Create a Group
 // @route   POST /api/groups/
@@ -72,13 +73,16 @@ const createGroup = [
         try {
             await group.save();
             res.status(201).json({ message: 'Group created successfully', group, newMembers: createdUsers });
+
             // Send email notifications to new users
             createdUsers.forEach(user => {
-                sendEmailNotification(
-                    user.email,
-                    'You’ve been added to a Test Group',
-                    `Hello ${user.name},\n\nYou have been added to the group "${groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
-                );
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: user.email,
+                    subject: 'Welcome to QzPlatform',
+                    text: `Hello ${user.name},\n\nYou have been added to the group "${groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
+                };
+                sendMail(mailOptions);
             });
         } catch (error) {
             console.error("Error Saving Group:", error);
@@ -101,10 +105,10 @@ const getAllGroups = asyncHandler(async (req, res) => {
 const getGroupById = asyncHandler(async (req, res) => {
     const group = await Group.findById(req.params.groupId).populate('members', 'fullName email');
     if (!group) {
-        res.status(404);
-        throw new Error('Group not found');
+        res.status(404).json({ message: 'Group not found' });
+    } else {
+        res.status(200).json(group);
     }
-    res.status(200).json(group);
 });
 
 // @Desc    Update a group
@@ -116,8 +120,7 @@ const updateGroup = asyncHandler(async (req, res) => {
     // Find the group by ID
     let group = await Group.findById(req.params.groupId).populate('members', 'email');
     if (!group) {
-        res.status(404);
-        throw new Error('Group not found');
+        return res.status(404).json({ message: 'Group not found' });
     }
 
     // Update group details if provided
@@ -125,28 +128,33 @@ const updateGroup = asyncHandler(async (req, res) => {
     if (groupDescription) group.groupDescription = groupDescription;
 
     if (memberEmails) {
-        // Find existing users by email
+        // Fetch all users by provided emails
         let allUsers = await User.find({ email: { $in: memberEmails } });
-        let existingMembers = allUsers.filter(user => user.role === 'testTaker');
 
         // Map to get emails of existing members in the group
-        const existingEmails = group.members.map(member => member.email);
+        const existingGroupMemberEmails = group.members.map(member => member.email);
 
-        // Identify new emails that need to be added
-        const newEmails = memberEmails.filter(email => !existingEmails.includes(email));
+        // Identify new emails that are not yet in the system or in the group
+        const newEmails = memberEmails.filter(email => !existingGroupMemberEmails.includes(email));
 
-        // Validate new emails to ensure they are not already in use by admins or test creators
-        const validEmails = newEmails.filter(email => {
-            const user = allUsers.find(user => user.email === email);
-            return !user || user.role === 'testTaker';
-        });
+        // Identify emails that already exist in the system but are not yet in the group
+        const existingEmailsNotInGroup = allUsers
+            .filter(user => !existingGroupMemberEmails.includes(user.email))
+            .map(user => user.email);
+
+        // Emails to create new users for: those that are not in the system at all
+        const emailsToCreate = newEmails.filter(email => !existingEmailsNotInGroup.includes(email));
 
         // Create new users for valid new emails
-        const newUsers = validEmails.map(email => ({
-            name: email.split('@')[0],
-            email: email,
-            password: 'defaultPassword123',
-            role: 'testTaker'
+        const newUsers = await Promise.all(emailsToCreate.map(async (email) => {
+            const hashedPassword = await bcrypt.hash('defaultPassword123', 10);
+            return {
+                name: email.split('@')[0],
+                fullName: email.split('@')[0],
+                email: email,
+                password: hashedPassword,
+                role: 'testTaker'
+            };
         }));
 
         let createdUsers = [];
@@ -155,14 +163,15 @@ const updateGroup = asyncHandler(async (req, res) => {
                 createdUsers = await User.insertMany(newUsers);
             } catch (error) {
                 console.error('Error Creating New Users:', error);
-                return res.status(400).json({ message: 'Failed to create new users', error });
+                return res.status(500).json({ message: 'Failed to create new users', error });
             }
         }
 
         // Combine existing members that are still in the list and newly created users
         const updatedMemberIds = [
             ...group.members.filter(member => memberEmails.includes(member.email)).map(member => member._id),
-            ...createdUsers.map(user => user._id)
+            ...createdUsers.map(user => user._id),
+            ...allUsers.filter(user => existingEmailsNotInGroup.includes(user.email)).map(user => user._id)
         ];
 
         // Update the group's members with the filtered and new members
@@ -170,8 +179,26 @@ const updateGroup = asyncHandler(async (req, res) => {
     }
 
     // Save the updated group
-    await group.save();
-    res.status(200).json({ message: 'Group updated successfully', group });
+    try {
+        await group.save();
+        res.status(200).json({ message: 'Group updated successfully', group });
+
+        // Send email notifications to newly added users
+        if (createdUsers.length > 0) {
+            createdUsers.forEach(user => {
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: user.email,
+                    subject: 'Welcome to QzPlatform',
+                    text: `Hello ${user.name},\n\nYou have been added to the group "${group.groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
+                };
+                sendMail(mailOptions);
+            });
+        }
+    } catch (error) {
+        console.error("Error Updating Group:", error);
+        res.status(500).json({ message: "Failed to update group", error });
+    }
 });
 
 
@@ -181,10 +208,10 @@ const updateGroup = asyncHandler(async (req, res) => {
 const deleteGroup = asyncHandler(async (req, res) => {
     const group = await Group.findByIdAndDelete(req.params.groupId);
     if (!group) {
-        res.status(404);
-        throw new Error('Group not found');
+        res.status(404).json({ message: 'Group not found' });
+    } else {
+        res.status(200).json({ message: 'Group deleted successfully' });
     }
-    res.status(200).json({ message: 'Group deleted successfully' });
 });
 
 module.exports = {
