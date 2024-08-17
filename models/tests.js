@@ -6,7 +6,7 @@ const TestSchema = new Schema({
     category: { type: String },
     createdBy: { type: String, required: true },
     instruction: { type: String },
-    questions: [],
+    questions: [{type: Schema.Types.ObjectId, ref: 'Question'}],
     settings: {
         startDate: { type: Date },
         endDate: { type: Date },
