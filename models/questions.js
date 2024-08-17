@@ -10,7 +10,7 @@ const questionSchema = new Schema({
     settings: {
         points: { type: Number},
         category: { type: String},
-        randomizeOptions: { type: Boolean}
+        randomizeOptions: { type: Boolean, default: false},
     }
 },{timestamps: true});
 
