@@ -16,12 +16,13 @@ const createTest = async (req, res) => {
             instructions,
         });
 
-        const saveTest = await newTest.save();
+        const savedTest = await newTest.save();
         res.status(201).json({message: "New Test Created" , savedTest});
 
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+}
 
 const createTestAndContinue = async (req, res) => {
     try {
@@ -34,7 +35,7 @@ const createTestAndContinue = async (req, res) => {
             instructions,
         });
 
-        const saveTest = await newTest.save();
+        const savedTest = await newTest.save();
         res.status(201).json({
             message: "New Created Successfully, proceed to add question" , 
             testId: savedTest_id,
@@ -43,6 +44,8 @@ const createTestAndContinue = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
+}
+
 //@Desc Get all tests
 //@Route GET /api/tests
 //@Access Public

@@ -1,9 +1,10 @@
 const express = require ('express');
+const router = express.Router();
 const { 
     createTest, 
     createTestAndContinue, 
     getTests, 
-    getTestsbyId,
+    getTestById,
     updateTest,
     deleteTest 
 } = require('../controllers/testController');
@@ -18,7 +19,7 @@ router.post('/create-and-continue', createTestAndContinue);
 router.get('/', getTests)
 
 //Get test by Id
-router.get('/:testId', getTestsById)
+router.get('/:testId', getTestById)
 
 //Update Test
 router.put('/:testId', updateTest)
