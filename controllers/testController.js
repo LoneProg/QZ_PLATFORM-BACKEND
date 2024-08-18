@@ -122,8 +122,6 @@ const updateTest = async (req, res) => {
     }
 };
 
-
-
 //@Desc Delete a test by id
 //@Route DELETE /api/tests/:id
 //@Access Public

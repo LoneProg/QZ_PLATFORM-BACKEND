@@ -3,12 +3,17 @@ const Schema = mongoose.Schema;
 
 
 const questionSchema = new Schema({
-    type: { type: String, enum:["multiChoice, TrueFalse, shortAnswer"], required: true},
-    text: { type: String, required: true},
-    options: [String],
-    correctAnswer: { type: Schema.Types.Mixed},
+    questionType: { type: String, enum:["multiChoice, TrueFalse, shortAnswer"], required: true},
+    questionText: { type: String, required: true},
+    questionOptions: [
+        {
+            optionText: { type : String },
+            isCorrect: {type : Boolean}
+        }
+    ],
+    correctAnswers: [Strings],
     settings: {
-        points: { type: Number},
+        points: { type: Number, default: 1},
         category: { type: String},
         randomizeOptions: { type: Boolean, default: false},
     }
