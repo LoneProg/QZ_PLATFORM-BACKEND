@@ -122,6 +122,36 @@ const updateTest = async (req, res) => {
     }
 };
 
+//@DESC Test Basic Configuration
+//@Route UPDATE /api/tests/:testId/config
+//@Access Public
+
+const updateTestConfig = async (req, res) => {
+    const { startDate, endDate, limits, attempts, randomizeQuestions, availability, passingScore} = req.body;
+    const test = await Test.findById(req.params.testId);
+    try {
+        if (!test) {
+            return res.status(404).json({ message: 'Test not found' });
+        }
+    
+        test.settings.startDate = startDate || test.settings.startDate;
+        test.settings.endDate = endDate || test.settings.endDate;
+        test.settings.limits = limits || test.settings.limits;
+        test.settings.attempts = attempts || test.settings.attempts;
+        test.settings.randomizeQuestions = randomizeQuestions || test.settings.randomizeQuestions;
+        test.settings.availability = availability || test.settings.availability;
+        test.settings.passingScore = passingScore || test.settings.passingScore;
+        test.updatedAt = Date.now();
+    
+        const updatedTestConfig = await test.save();
+        res.status(200).json(updatedTestConfig);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
 //@Desc Delete a test by id
 //@Route DELETE /api/tests/:id
 //@Access Public
@@ -145,4 +175,5 @@ module.exports = {
     getTestById,
     updateTest,
     deleteTest,
+    updateTestConfig,
 };
