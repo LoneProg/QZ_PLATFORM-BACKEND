@@ -6,7 +6,7 @@ const {
 } = require("../controllers/testController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.post("/create", createTest);
+router.post("/create", authMiddleware, createTest);
 router.get("/:passcode", getTestByPasscode);
 
 module.exports = router;
