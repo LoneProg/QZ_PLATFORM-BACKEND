@@ -57,7 +57,7 @@ const createTest = async (req, res) => {
     // Create a new test document
     const newTest = new Test({
       title,
-      creator: req.user.id, // Assuming `req.user.id` comes from the authenticated user
+      creator: req.user, // Assuming `req.user.id` comes from the authenticated user
       passcode: generatePasscode(),
       questions,
       isGroupTest,
