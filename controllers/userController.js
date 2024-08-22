@@ -1,5 +1,7 @@
 const asyncHandler = require("express-async-handler");
-const User = require("../models/users");
+const { sendMail } = require("../utils/sendEmail");
+const User = require("../models/Users");
+const bcrypt = require('bcryptjs');
 
 //@desc Create User
 //@route POST /api/users
@@ -20,11 +22,14 @@ const createUser = asyncHandler(async (req, res) => {
         throw new Error("User already exists");
     }
 
+    // Hash the password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Create user
     const user = await User.create({
         name,
         email,
-        password, // Note: Ideally, you should hash the password before saving
+        password: hashedPassword, // Save hashed password
         role
     });
 
@@ -36,6 +41,16 @@ const createUser = asyncHandler(async (req, res) => {
             email: user.email,
             role: user.role
         });
+
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Welcome to QzPlatform',
+            text: `Hi ${name},\n\nYour account has been created successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+        sendMail(mailOptions);
         
     } else {
         res.status(400);
@@ -74,16 +89,31 @@ const updateUser = asyncHandler(async (req, res) => {
     if (user) {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
-        user.password = req.body.password || user.password; // Hash password if changed
+
+        if (req.body.password) {
+            user.password = await bcrypt.hash(req.body.password, 10); // Hash password if changed
+        }
+
         user.role = req.body.role || user.role;
 
         const updatedUser = await user.save();
         res.json({
+            message: "User Updated Successfully",
             _id: updatedUser._id,
             name: updatedUser.name,
             email: updatedUser.email,
             role: updatedUser.role
         });
+
+        // Send email notification
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: updatedUser.email,
+            subject: 'Account Updated',
+            text: `Hi ${updatedUser.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
+        };
+
+        sendMail(mailOptions);
     } else {
         res.status(404);
         throw new Error("User not found");
@@ -97,8 +127,8 @@ const deleteUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.userId);
 
     if (user) {
-        await user.remove();
-        res.json({ message: "User removed" });
+        await User.findByIdAndDelete(req.params.userId);
+        res.json({ message: "User removed successfully" });
     } else {
         res.status(404);
         throw new Error("User not found");
