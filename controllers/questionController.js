@@ -1,60 +1,126 @@
 const asyncHandler = require('express-async-handler');
 const Question = require('../models/questions');
 const Test  = require('../models/tests');
+const shuffleArray = require('../utils/shuffleArray');
 const QuestionBank = require('../models/questionBank');
 
-//@Desc Add a question
-//@Route POST /api/questions
-//@Access Public
-
-//@Desc Get questions to a test
-//@Route GET /api/questions
-//@Access Public
-
-
-//@Desc get questions by ID
-//@Route GET /api/questions/:questionId
-//@Access Public
-
-//@Desc Update questions
-//@Route PUT /api/questions
-//@Access Public
-
-//@Desc Add questions to a test
+//@Desc Add a question to test 
 //@Route POST /api/tests/:testId/questions
 //@Access Public
-const addQuestionsToTest = asyncHandler(async (req, res) => {
-    try {
-        const { questions } = req.body; // Array of question IDs
+const addQuestionToTest = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+    const { questionType, questionText, questionOptions, questionAnswers, points, category, randomizeAnswers } = req.body;
 
-        // Check if questions array is provided and not empty
-        if (!questions || !Array.isArray(questions) || questions.length === 0) {
-            return res.status(400).json({ message: 'Questions array is required' });
-        }
+    const newQuestion = new Question({
+        questionType,
+        questionText,
+        questionOptions,
+        questionAnswers,
+        points,
+        category,
+        randomizeAnswers
+    });
 
-        const test = await Test.findById(req.params.testId);
+    await newQuestion.save();
 
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
-
-        // Validate that the provided questions exist
-        const validQuestions = await Question.find({ _id: { $in: questions } });
-        if (validQuestions.length !== questions.length) {
-            return res.status(400).json({ message: 'One or more questions are invalid' });
-        }
-
-        // Avoid adding duplicate question IDs
-        const existingQuestionIds = new Set(test.questions.map(q => q.toString()));
-        questions.forEach(q => {
-            if (!existingQuestionIds.has(q)) {
-                test.questions.push(q);
-            }
-        });
-
-        const updatedTest = await test.save();
-        res.status(200).json({ message: "Questions added successfully", updatedTest });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    // Associate question with the test
+    const test = await Test.findById(testId);
+    if (!test) {
+        res.status(404);
+        throw new Error('Test not found');
     }
+    test.questions.push(newQuestion._id);
+    await test.save();
+
+    res.status(201).json(newQuestion);
 });
+
+
+//@Desc Get all questions for a test with randomized options 
+//@Route GET /api/tests/:testId/questions
+//@Access Public
+
+const getTestQuestions = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+
+    const test = await Test.findById(testId).populate('questions');
+    if (!test) {
+        res.status(404);
+        throw new Error('Test not found');
+    }
+
+    const randomizedQuestions = test.questions.map((question) => {
+        if (question.randomizeAnswers) {
+            // Make a copy of question options and shuffle them
+            const shuffledOptions = shuffleArray([...question.questionOptions]);
+            return {
+                ...question.toObject(),
+                questionOptions: shuffledOptions
+            };
+        }
+        return question;
+    });
+
+    res.json(randomizedQuestions);
+});
+
+
+//@Desc Update questions in a Test 
+//@Route PUT /api/tests/:testId/:questionId
+//Access Public
+const updateQuestionInTest = asyncHandler(async (req, res) => {
+    const { testId, questionId } = req.params;
+    const { questionType, questionText, questionOptions, questionAnswers, points, category, randomizeAnswers } = req.body;
+
+    const question = await Question.findById(questionId);
+    if (!question) {
+        res.status(404);
+        throw new Error('Question not found');
+    }
+
+    question.questionType = questionType || question.questionType;
+    question.questionText = questionText || question.questionText;
+    question.questionOptions = questionOptions || question.questionOptions;
+    question.questionAnswers = questionAnswers || question.questionAnswers;
+    question.points = points || question.points;
+    question.category = category || question.category;
+    question.randomizeAnswers = randomizeAnswers || question.randomizeAnswers;
+
+    await question.save();
+
+    res.json(question);
+});
+
+//@Desc Delete question from test
+//@Route GET /api/tests/:testId/:questionId
+//@Access Public
+const deleteQuestionFromTest = asyncHandler(async (req, res) => {
+    const { testId, questionId } = req.params;
+
+    const question = await Question.findById(questionId);
+    if (!question) {
+        res.status(404);
+        throw new Error('Question not found');
+    }
+
+    await question.remove();
+
+    // Remove question reference from the test
+    const test = await Test.findById(testId);
+    if (!test) {
+        res.status(404);
+        throw new Error('Test not found');
+    }
+
+    test.questions = test.questions.filter(q => q.toString() !== questionId);
+    await test.save();
+
+    res.json({ message: 'Question deleted successfully' });
+});
+
+module.exports = {
+    addQuestionToTest,
+    getTestQuestions,
+    updateQuestionInTest,
+    deleteQuestionFromTest 
+}
