@@ -64,6 +64,28 @@ const getTestQuestions = asyncHandler(async (req, res) => {
     res.json(randomizedQuestions);
 });
 
+//@Desc Get a specific question from a test by question ID
+//@Route GET /api/tests/:testId/questions/:questionId
+//@Access Public
+const getQuestionFromTestById = asyncHandler(async (req, res) => {
+    const { testId, questionId } = req.params;
+
+    // Find the test by ID
+    const test = await Test.findById(testId).populate('questions');
+    if (!test) {
+        res.status(404);
+        throw new Error('Test not found');
+    }
+
+    // Find the specific question within the test's questions array
+    const question = test.questions.find(q => q._id.toString() === questionId);
+    if (!question) {
+        res.status(404);
+        throw new Error('Question not found');
+    }
+
+    res.status(200).json(question);
+});
 
 //@Desc Update questions in a Test 
 //@Route PUT /api/tests/:testId/:questionId
@@ -121,6 +143,7 @@ const deleteQuestionFromTest = asyncHandler(async (req, res) => {
 module.exports = {
     addQuestionToTest,
     getTestQuestions,
+    getQuestionFromTestById,
     updateQuestionInTest,
     deleteQuestionFromTest 
 }
