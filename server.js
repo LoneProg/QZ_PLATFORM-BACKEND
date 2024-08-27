@@ -16,6 +16,8 @@ app.use("/api/users", require("./routes/userRoutes"));
 app.use("/api/groups", require("./routes/groupRoutes")); 
 app.use("/api/auths", require("./routes/authRoutes"));
 app.use("/api/tests", require("./routes/testRoutes"));
+app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
+
 app.use(errorHandler);
 
 // Connect to MongoDB

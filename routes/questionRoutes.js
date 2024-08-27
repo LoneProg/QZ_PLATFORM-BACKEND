@@ -1,25 +1,26 @@
 const express = require('express');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });  // mergeParams to access parent route params
 const {
     addQuestionToTest,
     getTestQuestions,
+    getQuestionFromTestById,
     updateQuestionInTest,
     deleteQuestionFromTest,
-} = require ('../controllers/questionController');
+} = require('../controllers/questionController');
 
-//Add question to test
-router.post('/:testId/questions', addQuestionToTest);
+// Add question to test
+router.post('/', addQuestionToTest);  // Use base path '/' since parent route provides /:testId/questions
 
-//Get questions for test
-router.get('/:testId/questions', getTestQuestions);
+// Get questions for test
+router.get('/', getTestQuestions);  // Adjust to use base path
 
-//Get question from test by Id
-router.get('/:testId/:questionId', getQuestionFromTestById);
+// Get question from test by Id
+router.get('/:questionId', getQuestionFromTestById);
 
-//Update questions in Test
-router.put('/:testId/:questionId', updateQuestionInTest);
+// Update questions in Test
+router.put('/:questionId', updateQuestionInTest);
 
-//delete questions From Test
-router.delete('/:testId/:questionId', deleteQuestionFromTest);
+// Delete questions From Test
+router.delete('/:questionId', deleteQuestionFromTest);
 
 module.exports = router;
