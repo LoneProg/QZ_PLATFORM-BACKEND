@@ -7,64 +7,82 @@ const QuestionBank = require('../models/questionBank');
 // @Desc Add a question to test 
 // @Route POST /api/tests/:testId/questions
 // @Access Public
-const addQuestionToTest = asyncHandler(async (req, res) => {
+const addQuestionToTest = asyncHandler(async (req, res, next) => {
     const { testId } = req.params;
-    const { questionType, questionText, questionOptions, points, category, randomizeAnswers } = req.body;
+    const { questionType, questionText, questionOptions, points, category, randomizeAnswers, questionAnswers } = req.body;
 
-    let errors = [];
+    // Validate questionType
+    if (!['multipleChoice', 'TrueFalse', 'fillInTheGap'].includes(questionType)) {
+        return res.status(400).json({ message: "Invalid question type. Must be 'multipleChoice', 'TrueFalse', or 'fillInTheGap'." });
+    }
 
-    // Validation based on questionType
+    // Validate questionText
+    if (!questionText || typeof questionText !== 'string') {
+        return res.status(400).json({ message: "Question text is required and must be a string." });
+    }
+
+    // Validation for multipleChoice questions
     if (questionType === 'multipleChoice') {
         if (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5) {
-            errors.push('Multiple choice questions must have between 3 and 5 options.');
+            return res.status(400).json({ message: "Multiple choice questions must have between 3 and 5 options." });
         }
-    } else if (questionType === 'TrueFalse') {
+        if (questionAnswers && questionAnswers.length > 0) {
+            return res.status(400).json({ message: "Multiple choice questions should not have 'questionAnswers' field." });
+        }
+    }
+
+    // Validation for TrueFalse questions
+    if (questionType === 'TrueFalse') {
         if (!questionOptions || questionOptions.length !== 2) {
-            errors.push('True or False questions must have exactly 2 options.');
+            return res.status(400).json({ message: "True or False questions must have exactly 2 options." });
         }
 
         const validTrueFalseOptions = [["True", "False"], ["False", "True"], ["Yes", "No"], ["No", "Yes"]];
         const providedOptions = questionOptions.map(option => option.optionText);
         if (!validTrueFalseOptions.some(validPair => JSON.stringify(validPair) === JSON.stringify(providedOptions))) {
-            errors.push('True or False questions must have options: "True" and "False" or "Yes" and "No".');
+            return res.status(400).json({ message: "True or False questions must have options: 'True' and 'False' or 'Yes' and 'No'." });
         }
-    } else if (questionType === 'fillInTheGap') {
+    }
+
+    // Validation for fillInTheGap questions
+    if (questionType === 'fillInTheGap') {
         if (questionOptions && questionOptions.length > 0) {
-            errors.push('Fill in the gap questions should not have any options.');
+            return res.status(400).json({ message: "Fill in the gap questions should not have any options." });
         }
 
-        if (!req.body.questionAnswers || req.body.questionAnswers.length === 0) {
-            errors.push('Fill in the gap questions must have answers.');
+        if (!questionAnswers || questionAnswers.length === 0) {
+            return res.status(400).json({ message: "Fill in the gap questions must have answers." });
         }
     }
 
-    if (errors.length > 0) {
-        res.status(400).json({ errors });
-        return;
+    try {
+        // Create new question instance
+        const newQuestion = new Question({
+            questionType,
+            questionText,
+            questionOptions,
+            points,
+            category,
+            randomizeAnswers
+        });
+
+        await newQuestion.save();
+
+        // Associate question with the test
+        const test = await Test.findById(testId);
+        if (!test) {
+            return res.status(404).json({ message: 'Test not found' });
+        }
+
+        test.questions.push(newQuestion._id);
+        await test.save();
+
+        res.status(201).json(newQuestion);
+    } catch (error) {
+        next(error);
     }
-
-    const newQuestion = new Question({
-        questionType,
-        questionText,
-        questionOptions,
-        points,
-        category,
-        randomizeAnswers
-    });
-
-    await newQuestion.save();
-
-    // Associate question with the test
-    const test = await Test.findById(testId);
-    if (!test) {
-        res.status(404).json({ error: 'Test not found' });
-        return;
-    }
-    test.questions.push(newQuestion._id);
-    await test.save();
-
-    res.status(201).json(newQuestion);
 });
+
 
 //@Desc Get all questions for a test with randomized options 
 //@Route GET /api/tests/:testId/questions
@@ -120,59 +138,56 @@ const getQuestionFromTestById = asyncHandler(async (req, res) => {
 // @Desc Update question in a Test 
 // @Route PUT /api/tests/:testId/questions/:questionId
 // @Access Public
-const updateQuestionInTest = asyncHandler(async (req, res) => {
+const updateQuestionInTest = asyncHandler(async (req, res, next) => {
     const { testId, questionId } = req.params;
     const { questionType, questionText, questionOptions, points, category, randomizeAnswers } = req.body;
 
-    const question = await Question.findById(questionId);
-    if (!question) {
-        res.status(404).json({ error: 'Question not found' });
-        return;
+    try {
+        const question = await Question.findById(questionId);
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        // Validation based on questionType
+        if (questionType === 'multipleChoice') {
+            if (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5) {
+                return res.status(400).json({ message: 'Multiple choice questions must have between 3 and 5 options.' });
+            }
+        } else if (questionType === 'TrueFalse') {
+            if (!questionOptions || questionOptions.length !== 2) {
+                return res.status(400).json({ message: 'True or False questions must have exactly 2 options.' });
+            }
+
+            const validTrueFalseOptions = [["True", "False"], ["False", "True"], ["Yes", "No"], ["No", "Yes"]];
+            const providedOptions = questionOptions.map(option => option.optionText);
+            if (!validTrueFalseOptions.some(validPair => JSON.stringify(validPair) === JSON.stringify(providedOptions))) {
+                return res.status(400).json({ message: 'True or False questions must have options: "True" and "False" or "Yes" and "No".' });
+            }
+        } else if (questionType === 'fillInTheGap') {
+            if (questionOptions && questionOptions.length > 0) {
+                return res.status(400).json({ message: 'Fill in the gap questions should not have any options.' });
+            }
+
+            if (!req.body.questionAnswers || req.body.questionAnswers.length === 0) {
+                return res.status(400).json({ message: 'Fill in the gap questions must have answers.' });
+            }
+        }
+
+        question.questionType = questionType || question.questionType;
+        question.questionText = questionText || question.questionText;
+        question.questionOptions = questionOptions || question.questionOptions;
+        question.points = points || question.points;
+        question.category = category || question.category;
+        question.randomizeAnswers = randomizeAnswers || question.randomizeAnswers;
+
+        await question.save();
+
+        res.json(question);
+    } catch (error) {
+        next(error);
     }
-
-    let errors = [];
-
-    // Validation based on questionType
-    if (questionType === 'multipleChoice') {
-        if (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5) {
-            errors.push('Multiple choice questions must have between 3 and 5 options.');
-        }
-    } else if (questionType === 'TrueFalse') {
-        if (!questionOptions || questionOptions.length !== 2) {
-            errors.push('True or False questions must have exactly 2 options.');
-        }
-
-        const validTrueFalseOptions = [["True", "False"], ["False", "True"], ["Yes", "No"], ["No", "Yes"]];
-        const providedOptions = questionOptions.map(option => option.optionText);
-        if (!validTrueFalseOptions.some(validPair => JSON.stringify(validPair) === JSON.stringify(providedOptions))) {
-            errors.push('True or False questions must have options: "True" and "False" or "Yes" and "No".');
-        }
-    } else if (questionType === 'fillInTheGap') {
-        if (questionOptions && questionOptions.length > 0) {
-            errors.push('Fill in the gap questions should not have any options.');
-        }
-
-        if (!req.body.questionAnswers || req.body.questionAnswers.length === 0) {
-            errors.push('Fill in the gap questions must have answers.');
-        }
-    }
-
-    if (errors.length > 0) {
-        res.status(400).json({ errors });
-        return;
-    }
-
-    question.questionType = questionType || question.questionType;
-    question.questionText = questionText || question.questionText;
-    question.questionOptions = questionOptions || question.questionOptions;
-    question.points = points || question.points;
-    question.category = category || question.category;
-    question.randomizeAnswers = randomizeAnswers || question.randomizeAnswers;
-
-    await question.save();
-
-    res.json(question);
 });
+
 
 
 //@Desc Delete question from test
