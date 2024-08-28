@@ -171,17 +171,10 @@ const unlinkQuestionFromTest = asyncHandler(async (req, res) => {
         const question = await Question.findById(id);
         const test = await Test.findById(testId);
 
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
-        }
+        if (!question) return res.status(404).json({ message: 'Question not found' });
+        if (!test) return res.status(404).json({ message: 'Test not found' });
 
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
-
-        if (!test.questions.includes(id)) {
-            return res.status(400).json({ message: 'Question is not linked to this test' });
-        }
+        if (!test.questions.includes(id)) return res.status(400).json({ message: 'Question is not linked to this test' });
 
         test.questions = test.questions.filter(q => q.toString() !== id);
         await test.save();
@@ -195,24 +188,27 @@ const unlinkQuestionFromTest = asyncHandler(async (req, res) => {
     }
 });
 
-// @Desc Search and filter questions in the Question Bank
+
+// @Desc Search questions based on filters
 // @Route GET /api/questions/search
 // @Access Public
-const searchQuestions = asyncHandler(async (req, res) => {
-    const { query } = req.query;
-    const filters = {};
+const searchQuestions = asyncHandler(async (req, res, next) => {
+    const { category, points, questionType } = req.query;
+    const query = {};
+    if (category) query.category = category;
+    if (points) query.points = points;
+    if (questionType) query.questionType = questionType;
 
-    if (query) {
-        filters.$text = { $search: query };
-    }
+    console.log('Query:', query); // Log the query for debugging
 
     try {
-        const questions = await Question.find(filters);
-        res.json(questions);
+        const questions = await Question.find(query);
+        res.status(200).json(questions);
     } catch (error) {
-        res.status(500).json({ message: 'Error searching questions' });
+        next(error);
     }
 });
+
 
 module.exports = {
     listAllQuestions,

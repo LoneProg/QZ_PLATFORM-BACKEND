@@ -30,9 +30,9 @@ router.delete('/:id', deleteQuestion);
 router.get('/search', searchQuestions);
 
 // @Route POST /api/questions/:questionId/link/:testId
-router.post('/:questionId/link/:testId', linkQuestionToTest);
+router.put('/:id/link/:testId', linkQuestionToTest);
 
-// @Route DELETE /api/questions/:questionId/unlink/:testId
-router.delete('/:questionId/unlink/:testId', unlinkQuestionFromTest);
+// @Route PUT /api/questions/:questionId/unlink/:testId
+router.put('/:id/unlink/:testId', unlinkQuestionFromTest);
 
 module.exports = router;
