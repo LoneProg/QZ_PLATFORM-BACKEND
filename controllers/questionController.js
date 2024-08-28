@@ -4,18 +4,49 @@ const Test  = require('../models/tests');
 const shuffleArray = require('../utils/shuffleArray');
 const QuestionBank = require('../models/questionBank');
 
-//@Desc Add a question to test 
-//@Route POST /api/tests/:testId/questions
-//@Access Public
+// @Desc Add a question to test 
+// @Route POST /api/tests/:testId/questions
+// @Access Public
 const addQuestionToTest = asyncHandler(async (req, res) => {
     const { testId } = req.params;
-    const { questionType, questionText, questionOptions, questionAnswers, points, category, randomizeAnswers } = req.body;
+    const { questionType, questionText, questionOptions, points, category, randomizeAnswers } = req.body;
+
+    let errors = [];
+
+    // Validation based on questionType
+    if (questionType === 'multipleChoice') {
+        if (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5) {
+            errors.push('Multiple choice questions must have between 3 and 5 options.');
+        }
+    } else if (questionType === 'TrueFalse') {
+        if (!questionOptions || questionOptions.length !== 2) {
+            errors.push('True or False questions must have exactly 2 options.');
+        }
+
+        const validTrueFalseOptions = [["True", "False"], ["False", "True"], ["Yes", "No"], ["No", "Yes"]];
+        const providedOptions = questionOptions.map(option => option.optionText);
+        if (!validTrueFalseOptions.some(validPair => JSON.stringify(validPair) === JSON.stringify(providedOptions))) {
+            errors.push('True or False questions must have options: "True" and "False" or "Yes" and "No".');
+        }
+    } else if (questionType === 'fillInTheGap') {
+        if (questionOptions && questionOptions.length > 0) {
+            errors.push('Fill in the gap questions should not have any options.');
+        }
+
+        if (!req.body.questionAnswers || req.body.questionAnswers.length === 0) {
+            errors.push('Fill in the gap questions must have answers.');
+        }
+    }
+
+    if (errors.length > 0) {
+        res.status(400).json({ errors });
+        return;
+    }
 
     const newQuestion = new Question({
         questionType,
         questionText,
         questionOptions,
-        questionAnswers,
         points,
         category,
         randomizeAnswers
@@ -26,15 +57,14 @@ const addQuestionToTest = asyncHandler(async (req, res) => {
     // Associate question with the test
     const test = await Test.findById(testId);
     if (!test) {
-        res.status(404);
-        throw new Error('Test not found');
+        res.status(404).json({ error: 'Test not found' });
+        return;
     }
     test.questions.push(newQuestion._id);
     await test.save();
 
     res.status(201).json(newQuestion);
 });
-
 
 //@Desc Get all questions for a test with randomized options 
 //@Route GET /api/tests/:testId/questions
@@ -87,23 +117,54 @@ const getQuestionFromTestById = asyncHandler(async (req, res) => {
     res.status(200).json(question);
 });
 
-//@Desc Update questions in a Test 
-//@Route PUT /api/tests/:testId/:questionId
-//Access Public
+// @Desc Update question in a Test 
+// @Route PUT /api/tests/:testId/questions/:questionId
+// @Access Public
 const updateQuestionInTest = asyncHandler(async (req, res) => {
     const { testId, questionId } = req.params;
-    const { questionType, questionText, questionOptions, questionAnswers, points, category, randomizeAnswers } = req.body;
+    const { questionType, questionText, questionOptions, points, category, randomizeAnswers } = req.body;
 
     const question = await Question.findById(questionId);
     if (!question) {
-        res.status(404);
-        throw new Error('Question not found');
+        res.status(404).json({ error: 'Question not found' });
+        return;
+    }
+
+    let errors = [];
+
+    // Validation based on questionType
+    if (questionType === 'multipleChoice') {
+        if (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5) {
+            errors.push('Multiple choice questions must have between 3 and 5 options.');
+        }
+    } else if (questionType === 'TrueFalse') {
+        if (!questionOptions || questionOptions.length !== 2) {
+            errors.push('True or False questions must have exactly 2 options.');
+        }
+
+        const validTrueFalseOptions = [["True", "False"], ["False", "True"], ["Yes", "No"], ["No", "Yes"]];
+        const providedOptions = questionOptions.map(option => option.optionText);
+        if (!validTrueFalseOptions.some(validPair => JSON.stringify(validPair) === JSON.stringify(providedOptions))) {
+            errors.push('True or False questions must have options: "True" and "False" or "Yes" and "No".');
+        }
+    } else if (questionType === 'fillInTheGap') {
+        if (questionOptions && questionOptions.length > 0) {
+            errors.push('Fill in the gap questions should not have any options.');
+        }
+
+        if (!req.body.questionAnswers || req.body.questionAnswers.length === 0) {
+            errors.push('Fill in the gap questions must have answers.');
+        }
+    }
+
+    if (errors.length > 0) {
+        res.status(400).json({ errors });
+        return;
     }
 
     question.questionType = questionType || question.questionType;
     question.questionText = questionText || question.questionText;
     question.questionOptions = questionOptions || question.questionOptions;
-    question.questionAnswers = questionAnswers || question.questionAnswers;
     question.points = points || question.points;
     question.category = category || question.category;
     question.randomizeAnswers = randomizeAnswers || question.randomizeAnswers;
@@ -112,6 +173,7 @@ const updateQuestionInTest = asyncHandler(async (req, res) => {
 
     res.json(question);
 });
+
 
 //@Desc Delete question from test
 //@Route GET /api/tests/:testId/:questionId
