@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const {
-    createQuestion,
-    getAllQuestions,
+    addNewQuestion,
+    listAllQuestions,
     getQuestionById,
     updateQuestion,
     deleteQuestion,
@@ -12,10 +12,10 @@ const {
 } = require('../controllers/questionBankController');
 
 // @Route POST /api/questions
-router.post('/', createQuestion);
+router.post('/', addNewQuestion);
 
 // @Route GET /api/questions
-router.get('/', getAllQuestions);
+router.get('/', listAllQuestions);
 
 // @Route GET /api/questions/:id
 router.get('/:id', getQuestionById);

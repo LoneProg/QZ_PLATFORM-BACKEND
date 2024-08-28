@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const Question = require('../models/question'); // Unified model
-const Test = require('../models/test'); // Model for tests
+const Question = require('../models/questions'); // Unified model
+const Test = require('../models/tests'); // Model for tests
 
 // @Desc List all questions in the Question Bank
 // @Route GET /api/questions

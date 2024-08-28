@@ -1,6 +1,6 @@
 const asyncHandler = require('express-async-handler');
-const Question = require('../models/question'); // Adjusted import
-const Test = require('../models/test'); // Adjusted import
+const Question = require('../models/questions'); // Adjusted import
+const Test = require('../models/tests'); // Adjusted import
 const shuffleArray = require('../utils/shuffleArray');
 
 // @Desc Add a question to a test 
