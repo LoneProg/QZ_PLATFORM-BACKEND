@@ -2,7 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Question = require('../models/questions');
 const Test  = require('../models/tests');
 const shuffleArray = require('../utils/shuffleArray');
-const QuestionBank = require('../models/questionBank');
+
 
 // @Desc Add a question to test 
 // @Route POST /api/tests/:testId/questions
