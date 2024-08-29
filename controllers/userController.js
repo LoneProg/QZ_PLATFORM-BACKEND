@@ -126,12 +126,26 @@ const updateUser = asyncHandler(async (req, res) => {
         });
 
         // Send email notification
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: updatedUser.email,
-            subject: 'Account Updated',
-            text: `Hi ${updatedUser.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
-        };
+       const mailOptions = {
+    from: process.env.EMAIL,
+    to: updatedUser.email,
+    subject: 'Your QzPlatform Account Has Been Updated',
+    html: `
+        <p>Dear ${updatedUser.name},</p>
+
+        <p>We wanted to inform you that your QzPlatform account has been <strong>successfully updated</strong>.</p>
+
+        <p>If you did not request this change or believe this update was made in error, please contact our support team immediately.</p>
+
+        <p>If you have any questions or need further assistance, feel free to reach out. We’re here to help!</p>
+
+        <p>Thank you for being a valued member of our community.</p>
+
+        <p>Best regards,<br>
+        <strong>The QzPlatform Team</strong></p>
+    `
+};
+
 
         await sendMail(mailOptions);  // Await here if sendMail is asynchronous
 
