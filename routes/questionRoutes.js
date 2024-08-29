@@ -3,20 +3,20 @@ const router = express.Router();
 const questionController = require('../controllers/questionController');
 
 // Question Bank Routes
-router.get('/questions', questionController.listAllQuestions);
-router.post('/questions', questionController.addQuestion);
-router.get('/questions/search', questionController.searchQuestions);
-router.get('/questions/:id', questionController.getQuestionById);
-router.put('/questions/:id', questionController.updateQuestion);
-router.delete('/questions/:id', questionController.deleteQuestion);
-router.put('/questions/:id/link/:testId', questionController.linkOrUnlinkQuestionToTest);
-router.put('/questions/:id/unlink/:testId', questionController.linkOrUnlinkQuestionToTest);
+router.get('/', questionController.listAllQuestions);
+router.post('', questionController.addQuestion);
+router.get('/search', questionController.searchQuestions);
+router.get('/:id', questionController.getQuestionById);
+router.put('/:id', questionController.updateQuestion);
+router.delete('/:id', questionController.deleteQuestion);
+router.put('/:id/link/:testId', questionController.linkOrUnlinkQuestionToTest);
+router.put('/:id/unlink/:testId', questionController.linkOrUnlinkQuestionToTest);
 
 // Test-Specific Question Routes
-router.post('/tests/:testId/questions', questionController.addQuestion);
-router.get('/tests/:testId/questions', questionController.getTestQuestions);
-router.get('/tests/:testId/questions/:questionId', questionController.getQuestionById);
-router.put('/tests/:testId/questions/:questionId', questionController.updateQuestion);
-router.delete('/tests/:testId/questions/:questionId', questionController.deleteQuestion);
+router.post('/:testId/questions', questionController.addQuestion);
+router.get('/:testId/questions', questionController.getTestQuestions);
+router.get('/:testId/questions/:questionId', questionController.getQuestionById);
+router.put('/:testId/questions/:questionId', questionController.updateQuestion);
+router.delete('/:testId/questions/:questionId', questionController.deleteQuestion);
 
 module.exports = router;
