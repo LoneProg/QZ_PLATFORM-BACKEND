@@ -1,33 +1,30 @@
 const asyncHandler = require('express-async-handler');
-const Question = require('../models/questions'); // Adjusted import
-const Test = require('../models/tests'); // Adjusted import
+const Question = require('../models/questions');
+const Test = require('../models/tests');
 const shuffleArray = require('../utils/shuffleArray');
+const validateQuestionInput = require('../utils/validateQuestions')
 
-// @Desc Add a question to a test 
-// @Route POST /api/tests/:testId/questions
+
+// @Desc List all questions in the Question Bank
+// @Route GET /api/questions
 // @Access Public
-const addQuestionToTest = asyncHandler(async (req, res, next) => {
-    const { testId } = req.params;
-    const { questionType, questionText, questionOptions, points, category, randomizeAnswers, questionAnswers } = req.body;
+const listAllQuestions = asyncHandler(async (req, res) => {
+    const questions = await Question.find().populate('linkedTests', 'testName');
+    res.json(questions);
+});
 
-    if (!['multipleChoice', 'TrueFalse', 'fillInTheGap'].includes(questionType)) {
-        return res.status(400).json({ message: "Invalid question type." });
-    }
+// @Desc Add a new question (to Question Bank or to a test)
+// @Route POST /api/questions | /api/tests/:testId/questions
+// @Access Public
+const addQuestion = asyncHandler(async (req, res, next) => {
+    const { questionType, questionText, questionOptions, points, category, randomizeAnswers, questionAnswers } = req.body;
+    const { testId } = req.params;
+
+    const error = validateQuestionInput(questionType, questionOptions, questionAnswers);
+    if (error) return res.status(400).json({ message: error });
 
     if (!questionText || typeof questionText !== 'string') {
         return res.status(400).json({ message: "Question text is required and must be a string." });
-    }
-
-    if (questionType === 'multipleChoice' && (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5)) {
-        return res.status(400).json({ message: "Multiple choice questions must have between 3 and 5 options." });
-    }
-
-    if (questionType === 'TrueFalse' && (!questionOptions || questionOptions.length !== 2)) {
-        return res.status(400).json({ message: "True or False questions must have exactly 2 options." });
-    }
-
-    if (questionType === 'fillInTheGap' && (!questionAnswers || questionAnswers.length === 0)) {
-        return res.status(400).json({ message: "Fill in the gap questions must have answers." });
     }
 
     try {
@@ -43,17 +40,16 @@ const addQuestionToTest = asyncHandler(async (req, res, next) => {
 
         await newQuestion.save();
 
-        const test = await Test.findById(testId);
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
+        if (testId) {
+            const test = await Test.findById(testId);
+            if (!test) return res.status(404).json({ message: 'Test not found' });
+
+            test.questions.push(newQuestion._id);
+            await test.save();
+
+            newQuestion.linkedTests.push(testId);
+            await newQuestion.save();
         }
-
-        test.questions.push(newQuestion._id);
-        await test.save();
-
-        // Update the question's linkedTests
-        newQuestion.linkedTests.push(testId);
-        await newQuestion.save();
 
         res.status(201).json(newQuestion);
     } catch (error) {
@@ -61,73 +57,31 @@ const addQuestionToTest = asyncHandler(async (req, res, next) => {
     }
 });
 
-// @Desc Get all questions for a test with randomized options 
-// @Route GET /api/tests/:testId/questions
+// @Desc Get a specific question
+// @Route GET /api/questions/:id | /api/tests/:testId/questions/:questionId
 // @Access Public
-const getTestQuestions = asyncHandler(async (req, res) => {
-    const { testId } = req.params;
+const getQuestionById = asyncHandler(async (req, res) => {
+    const { id, testId, questionId } = req.params;
 
-    const test = await Test.findById(testId).populate('questions');
-    if (!test) {
-        res.status(404);
-        throw new Error('Test not found');
-    }
+    const question = await Question.findById(id || questionId).populate('linkedTests', 'testName');
+    if (!question) return res.status(404).json({ message: 'Question not found' });
 
-    const randomizedQuestions = test.questions.map((question) => {
-        if (question.randomizeAnswers) {
-            const shuffledOptions = shuffleArray([...question.questionOptions]);
-            return {
-                ...question.toObject(),
-                questionOptions: shuffledOptions
-            };
-        }
-        return question;
-    });
-
-    res.json(randomizedQuestions);
+    res.json(question);
 });
 
-// @Desc Get a specific question from a test by question ID
-// @Route GET /api/tests/:testId/questions/:questionId
+// @Desc Update a question
+// @Route PUT /api/questions/:id | /api/tests/:testId/questions/:questionId
 // @Access Public
-const getQuestionFromTestById = asyncHandler(async (req, res) => {
-    const { testId, questionId } = req.params;
-
-    const test = await Test.findById(testId).populate('questions');
-    if (!test) {
-        res.status(404);
-        throw new Error('Test not found');
-    }
-
-    const question = test.questions.find(q => q._id.toString() === questionId);
-    if (!question) {
-        res.status(404);
-        throw new Error('Question not found');
-    }
-
-    res.status(200).json(question);
-});
-
-// @Desc Update question in a Test 
-// @Route PUT /api/tests/:testId/questions/:questionId
-// @Access Public
-const updateQuestionInTest = asyncHandler(async (req, res, next) => {
-    const { testId, questionId } = req.params;
+const updateQuestion = asyncHandler(async (req, res, next) => {
+    const { id, testId, questionId } = req.params;
     const { questionType, questionText, questionOptions, points, category, randomizeAnswers, questionAnswers } = req.body;
 
     try {
-        const question = await Question.findById(questionId);
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
-        }
+        const question = await Question.findById(id || questionId);
+        if (!question) return res.status(404).json({ message: 'Question not found' });
 
-        // Validate and update question
-        if (questionType) {
-            if (questionType === 'multipleChoice' && (!questionOptions || questionOptions.length < 3 || questionOptions.length > 5)) {
-                return res.status(400).json({ message: 'Multiple choice questions must have between 3 and 5 options.' });
-            }
-            // Additional validation as needed
-        }
+        const error = validateQuestionInput(questionType, questionOptions, questionAnswers);
+        if (error) return res.status(400).json({ message: error });
 
         question.questionType = questionType || question.questionType;
         question.questionText = questionText || question.questionText;
@@ -138,47 +92,119 @@ const updateQuestionInTest = asyncHandler(async (req, res, next) => {
         question.questionAnswers = questionAnswers || question.questionAnswers;
 
         await question.save();
-
         res.json(question);
     } catch (error) {
         next(error);
     }
 });
 
-// @Desc Delete question from a test
-// @Route DELETE /api/tests/:testId/questions/:questionId
+// @Desc Delete a question
+// @Route DELETE /api/questions/:id | /api/tests/:testId/questions/:questionId
 // @Access Public
-const deleteQuestionFromTest = asyncHandler(async (req, res) => {
-    const { testId, questionId } = req.params;
-
-    const question = await Question.findById(questionId);
-    if (!question) {
-        res.status(404);
-        throw new Error('Question not found');
-    }
+const deleteQuestion = asyncHandler(async (req, res) => {
+    const { id, testId, questionId } = req.params;
+    const question = await Question.findById(id || questionId);
+    if (!question) return res.status(404).json({ message: 'Question not found' });
 
     await question.remove();
 
-    const test = await Test.findById(testId);
-    if (!test) {
-        res.status(404);
-        throw new Error('Test not found');
+    if (testId) {
+        const test = await Test.findById(testId);
+        if (!test) return res.status(404).json({ message: 'Test not found' });
+
+        test.questions = test.questions.filter(q => q.toString() !== (id || questionId));
+        await test.save();
+
+        question.linkedTests = question.linkedTests.filter(t => t.toString() !== testId);
+        await question.save();
     }
-
-    test.questions = test.questions.filter(q => q.toString() !== questionId);
-    await test.save();
-
-    // Remove the question's reference from linkedTests
-    question.linkedTests = question.linkedTests.filter(id => id.toString() !== testId);
-    await question.save();
 
     res.json({ message: 'Question deleted successfully' });
 });
 
+// @Desc Link or unlink a question from a test
+// @Route PUT /api/questions/:id/link/:testId | /api/questions/:id/unlink/:testId
+// @Access Public
+const linkOrUnlinkQuestionToTest = asyncHandler(async (req, res) => {
+    const { id, testId } = req.params;
+    const { action } = req.query; // action=link or action=unlink
+
+    const question = await Question.findById(id);
+    const test = await Test.findById(testId);
+
+    if (!question) return res.status(404).json({ message: 'Question not found' });
+    if (!test) return res.status(404).json({ message: 'Test not found' });
+
+    if (action === 'link') {
+        if (test.questions.includes(id)) return res.status(400).json({ message: 'Question already linked to this test' });
+
+        test.questions.push(id);
+        await test.save();
+
+        question.linkedTests.push(testId);
+        await question.save();
+
+        res.json({ message: 'Question linked to test successfully' });
+    } else if (action === 'unlink') {
+        if (!test.questions.includes(id)) return res.status(400).json({ message: 'Question is not linked to this test' });
+
+        test.questions = test.questions.filter(q => q.toString() !== id);
+        await test.save();
+
+        question.linkedTests = question.linkedTests.filter(t => t.toString() !== testId);
+        await question.save();
+
+        res.json({ message: 'Question unlinked from test successfully' });
+    } else {
+        res.status(400).json({ message: 'Invalid action' });
+    }
+});
+
+// @Desc Get all questions for a test with randomized options
+// @Route GET /api/tests/:testId/questions
+// @Access Public
+const getTestQuestions = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+
+    const test = await Test.findById(testId).populate('questions');
+    if (!test) return res.status(404).json({ message: 'Test not found' });
+
+    const randomizedQuestions = test.questions.map((question) => {
+        if (question.randomizeAnswers) {
+            const shuffledOptions = shuffleArray([...question.questionOptions]);
+            return { ...question.toObject(), questionOptions: shuffledOptions };
+        }
+        return question;
+    });
+
+    res.json(randomizedQuestions);
+});
+
+// @Desc Search questions based on filters
+// @Route GET /api/questions/search
+// @Access Public
+const searchQuestions = asyncHandler(async (req, res, next) => {
+    const { category, points, questionType } = req.query;
+    const query = {};
+    if (category) query.category = category;
+    if (points) query.points = points;
+    if (questionType) query.questionType = questionType;
+
+    try {
+        const questions = await Question.find(query);
+        res.status(200).json(questions);
+    } catch (error) {
+        next(error);
+    }
+});
+
 module.exports = {
-    addQuestionToTest,
+    listAllQuestions,
+    addQuestion,
+    getQuestionById,
+    updateQuestion,
+    deleteQuestion,
+    linkOrUnlinkQuestionToTest,
     getTestQuestions,
-    getQuestionFromTestById,
-    updateQuestionInTest,
-    deleteQuestionFromTest
+    searchQuestions
 };

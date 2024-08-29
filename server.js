@@ -12,13 +12,18 @@ const port = process.env.PORT || 3000;
 
 // Middleware Configuration
 app.use(express.json());
+
+// Include routes
 app.use("/api/users", require("./routes/userRoutes")); 
 app.use("/api/groups", require("./routes/groupRoutes")); 
 app.use("/api/auths", require("./routes/authRoutes"));
 app.use("/api/tests", require("./routes/testRoutes"));
-app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
-app.use("/api/questions", require("./routes/questionBankRoutes"))
 
+// Use a single questionRoutes.js for both Question Bank and Test-specific questions
+app.use("/api/questions", require("./routes/questionRoutes"));  // Routes for Question Bank
+app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));  // Routes for Test-specific questions
+
+// Error handling middleware
 app.use(errorHandler);
 
 // Connect to MongoDB
