@@ -74,16 +74,30 @@ const createGroup = [
             await group.save();
             res.status(201).json({ message: 'Group created successfully', group, newMembers: createdUsers });
 
-            // Send email notifications to new users
-            createdUsers.forEach(user => {
-                const mailOptions = {
-                    from: process.env.EMAIL,
-                    to: user.email,
-                    subject: 'Welcome to QzPlatform',
-                    text: `Hello ${user.name},\n\nYou have been added to the group "${groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
-                };
-                sendMail(mailOptions);
-            });
+           // Send email notifications to new users
+createdUsers.forEach(user => {
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: user.email,
+        subject: 'You Have Been Added to a New Course Group on QzPlatform',
+        html: `
+            <p>Dear ${user.name},</p>
+
+            <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
+
+            <p>Please log in to your account using your default credentials. For security reasons, we recommend that you change your default password immediately upon logging in.</p>
+
+            <p>If you have any questions or require assistance, please do not hesitate to contact our support team.</p>
+
+            <p>Thank you for being a part of our learning community. We wish you the best in your educational journey.</p>
+
+            <p>Best regards,<br>
+            <strong>The QzPlatform Team</strong></p>
+        `
+    };
+    sendMail(mailOptions);
+});
+
         } catch (error) {
             console.error("Error Saving Group:", error);
             res.status(500).json({ message: "Failed to create group", error });
@@ -183,18 +197,34 @@ const updateGroup = asyncHandler(async (req, res) => {
         await group.save();
         res.status(200).json({ message: 'Group updated successfully', group });
 
-        // Send email notifications to newly added users
-        if (createdUsers.length > 0) {
-            createdUsers.forEach(user => {
-                const mailOptions = {
-                    from: process.env.EMAIL,
-                    to: user.email,
-                    subject: 'Welcome to QzPlatform',
-                    text: `Hello ${user.name},\n\nYou have been added to the group "${group.groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
-                };
-                sendMail(mailOptions);
-            });
-        }
+       // Send email notifications to newly added users
+if (createdUsers.length > 0) {
+    createdUsers.forEach(user => {
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: user.email,
+            subject: 'You Have Been Added to a New Group on QzPlatform',
+            html: `
+                <p>Dear ${user.name},</p>
+
+                <p>We are pleased to inform you that you have been successfully added to the group "<strong>${group.groupName}</strong>" on QzPlatform.</p>
+
+                <p>As a member of this group, you will have access to various resources, courses, and assessments tailored to enhance your learning experience. Please make sure to log in to your account and familiarize yourself with the available materials.</p>
+
+                <p>For security purposes, it is highly recommended that you change your default password upon your first login. This will help ensure the safety of your personal information.</p>
+
+                <p>If you have any questions or need further assistance, please do not hesitate to reach out to our support team. We are here to help you make the most of your experience on QzPlatform.</p>
+
+                <p>Thank you for being a part of our learning community. We look forward to supporting you on your educational journey.</p>
+
+                <p>Best regards,<br>
+                <strong>The QzPlatform Team</strong></p>
+            `
+        };
+        sendMail(mailOptions);
+    });
+}
+
     } catch (error) {
         console.error("Error Updating Group:", error);
         res.status(500).json({ message: "Failed to update group", error });
