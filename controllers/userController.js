@@ -2,17 +2,18 @@ const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../utils/sendEmail");
 const User = require("../models/Users");
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto'); // Import crypto library
 
 //@desc Create User
 //@route POST /api/users
 //@access public
 const createUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, role } = req.body;
 
     // Validation
-    if (!name || !email || !password) {
+    if (!name || !email) {
         res.status(400);
-        throw new Error("All fields are mandatory");
+        throw new Error("Name and email are mandatory");
     }
 
     // Check if user exists
@@ -22,8 +23,11 @@ const createUser = asyncHandler(async (req, res) => {
         throw new Error("User already exists");
     }
 
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Generate a random password
+    const randomPassword = crypto.randomBytes(8).toString('hex'); // Generates a random 16-character hex password
+
+    // Hash the generated password before saving
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
     // Create user
     const user = await User.create({
@@ -42,16 +46,32 @@ const createUser = asyncHandler(async (req, res) => {
             role: user.role
         });
 
-        // Send email notification
-        const mailOptions = {
-            from: process.env.EMAIL,
-            to: email,
-            subject: 'Welcome to QzPlatform',
-            text: `Hi ${name},\n\nYour account has been created successfully.\n\nRegards,\nQzPlatform Team`
-        };
+        // Send email notification with generated password
+       const mailOptions = {
+    from: process.env.EMAIL,
+    to: email,
+    subject: 'Welcome to QzPlatform!',
+    html: `
+        <p>Dear ${name},</p>
 
-        sendMail(mailOptions);
-        
+        <p>Welcome to <strong>QzPlatform</strong>!</p>
+
+        <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
+
+        <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
+
+        <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
+
+        <p>We are excited to have you on board and look forward to helping you achieve your assessment goals.</p>
+
+        <p>Best regards,<br>
+        <strong>The QzPlatform Team</strong></p>
+    `
+};
+
+
+        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
+
     } else {
         res.status(400);
         throw new Error("Invalid user data");
@@ -76,7 +96,7 @@ const getUser = asyncHandler(async (req, res) => {
         res.json(user);
     } else {
         res.status(404);
-        throw new Error("User not found");
+        throw new Error(`User not found with ID: ${req.params.userId}`);
     }
 });
 
@@ -113,10 +133,11 @@ const updateUser = asyncHandler(async (req, res) => {
             text: `Hi ${updatedUser.name},\n\nYour account has been updated successfully.\n\nRegards,\nQzPlatform Team`
         };
 
-        sendMail(mailOptions);
+        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
+
     } else {
         res.status(404);
-        throw new Error("User not found");
+        throw new Error(`User not found with ID: ${req.params.userId}`);
     }
 });
 
@@ -131,7 +152,7 @@ const deleteUser = asyncHandler(async (req, res) => {
         res.json({ message: "User removed successfully" });
     } else {
         res.status(404);
-        throw new Error("User not found");
+        throw new Error(`User not found with ID: ${req.params.userId}`);
     }
 });
 

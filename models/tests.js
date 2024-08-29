@@ -12,7 +12,7 @@ const TestSchema = new Schema({
         endDate: { type: Date },
         timeLimit: { type: Number },
         attempts: { type: Number, default: 1 },
-        availability: { type: Boolean, default: false },
+        status: { type: String, enum:['unscheduled', 'scheduled', 'active', 'expired', 'closed' ] },
         randomizeQuestions: { type: Boolean, default: false },
         passingScore: { type: Number, default: 0},
         accessCode: { type: String }
