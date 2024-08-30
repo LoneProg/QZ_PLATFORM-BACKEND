@@ -109,11 +109,6 @@ const updateUser = asyncHandler(async (req, res) => {
     if (user) {
         user.name = req.body.name || user.name;
         user.email = req.body.email || user.email;
-
-        if (req.body.password) {
-            user.password = await bcrypt.hash(req.body.password, 10); // Hash password if changed
-        }
-
         user.role = req.body.role || user.role;
 
         const updatedUser = await user.save();
