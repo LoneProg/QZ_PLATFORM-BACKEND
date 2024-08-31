@@ -147,5 +147,4 @@ module.exports = {
     getTestById,
     updateTest,
     deleteTest,
-    updateTestConfig,
 };

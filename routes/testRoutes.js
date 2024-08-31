@@ -6,8 +6,7 @@ const {
     getTests, 
     getTestById,
     updateTest,
-    deleteTest,
-    updateTestConfig
+    deleteTest
 } = require('../controllers/testController');
 
 //Create Test
@@ -26,9 +25,6 @@ router.get('/:testId', getTestById)
 router.put('/:testId', updateTest)
 
 //Delete Test
-router.delete('/:testId', deleteTest)
-
-//Update test Config
-router.put('/:testId/config', updateTestConfig)
+router.delete('/:testId', deleteTest);
 
 module.exports = router;
