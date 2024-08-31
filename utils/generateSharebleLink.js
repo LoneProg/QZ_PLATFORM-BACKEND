@@ -9,7 +9,7 @@ const generateSharableLink = (test, type) => {
         timeAndAttempts: test.timeAndAttempts,
         configuration: test.configuration,
         proctoring: test.proctoring,
-        assignment: test.assignment
+        assignment: test.assignment,
         accessCode: test.configuration.accessCode
     };
 
