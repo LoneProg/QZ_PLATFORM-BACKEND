@@ -10,6 +10,7 @@ const generateSharableLink = (test, type) => {
         configuration: test.configuration,
         proctoring: test.proctoring,
         assignment: test.assignment
+        accessCode: test.configuration.accessCode
     };
 
     // Create a token with all test settings and configurations
