@@ -5,6 +5,7 @@ const generateSharableLink = (test, type) => {
     const payload = {
         testId: test._id,
         testName: test.testName,
+        testInstruction: test.instruction,
         scheduling: test.scheduling,
         timeAndAttempts: test.timeAndAttempts,
         configuration: test.configuration,
