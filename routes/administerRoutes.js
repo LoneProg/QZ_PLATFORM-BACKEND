@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { administerTest, updateTestSettings } = require('../controllers/administerController');
+const { administerTest,
+    getAdministerSettings,
+    updateTestSettings } = require('../controllers/administerController');
 
 
 //Route for administering Test
 router.post('/:testId', administerTest);
 
 //Route for getting all Administered Test
-router.post('/', listAdministeredTests);
+router.post('/testId', getAdministerSettings);
 
 //Route for updating Test Settings
 router.patch('/:testId', updateTestSettings);

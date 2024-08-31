@@ -5,6 +5,7 @@ const express = require('express');
 //const Group = require('../models/Group');
 const { sendMail } = require('../utils/sendEmail');
 const { generateSharableLink } = require('../utils/generateSharebleLink'); // Updated utility
+const { generateRandomPassword} = require('../utils/generatePassowrd');
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -21,8 +22,6 @@ const administerTest = asyncHandler(async (req, res) => {
 
     // Find the test by ID
     const test = await Test.findById(testId);
-
-    console.log(test);
     if (!test) {
         return res.status(404).json({ message: 'Test not found' });
     }
@@ -50,6 +49,11 @@ const administerTest = asyncHandler(async (req, res) => {
             ...test.configuration,
             ...configuration
         };
+
+        // Generate a new access code using your utility function
+        if (!test.configuration.accessCode) {
+            test.configuration.accessCode = generateRandomPassword(6);
+        }
     }
 
     // Apply proctoring settings
@@ -86,9 +90,7 @@ const administerTest = asyncHandler(async (req, res) => {
             test.assignment.method = 'email';
             test.assignment.invitationEmails = assignment.invitationEmails;
 
-            // Generate the link with embedded settings
             const emailLink = generateSharableLink(test, 'restricted');
-
             assignment.invitationEmails.forEach(email => {
                 const mailOptions = {
                     from: process.env.EMAIL,
@@ -113,7 +115,6 @@ const administerTest = asyncHandler(async (req, res) => {
             test.assignment.method = 'link';
             test.assignment.linkSharing = assignment.linkSharing || 'restricted';
 
-            // Generate the link with embedded settings
             const link = generateSharableLink(test, assignment.linkSharing);
             return res.status(200).json({ message: 'Test configured successfully', test, link });
         }
@@ -128,6 +129,33 @@ const administerTest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Failed to administer test", error });
     }
 });
+
+// @Desc    Get administration settings for a test
+// @route   GET /api/tests/:testId/administer
+// @access  Public
+const getAdministerSettings = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+
+    // Find the test by ID
+    const test = await Test.findById(testId);
+
+    if (!test) {
+        return res.status(404).json({ message: 'Test not found' });
+    }
+
+    // Extracting administration-related details
+    const administrationSettings = {
+        scheduling: test.scheduling,
+        timeAndAttempts: test.timeAndAttempts,
+        configuration: test.configuration,
+        proctoring: test.proctoring,
+        assignment: test.assignment,
+    };
+
+    res.status(200).json({ message: 'Administration settings retrieved successfully', administrationSettings });
+});
+
+
 // @Desc    Update test configuration and administration settings
 // @route   PATCH /api/tests/:testId/administer
 // @access  private
@@ -190,4 +218,8 @@ const updateTestSettings = asyncHandler(async (req, res) => {
 });
 
 
-module.exports = { administerTest, updateTestSettings };
+module.exports = { 
+    administerTest, 
+    getAdministerSettings,
+    updateTestSettings 
+};
