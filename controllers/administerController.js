@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Test = require('../models/Test');
 const { sendMail } = require('../utils/sendEmail');
-const { generateSharableLink } = require('../utils/generateLink'); // Assuming a utility function for link generation
+const { generateSharableLink } = require('../utils/generateLink'); // Updated utility
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -81,6 +81,9 @@ const administerTest = asyncHandler(async (req, res) => {
             test.assignment.method = 'email';
             test.assignment.invitationEmails = assignment.invitationEmails;
 
+            // Generate the link with embedded settings
+            const emailLink = generateSharableLink(test, 'restricted');
+
             assignment.invitationEmails.forEach(email => {
                 const mailOptions = {
                     from: process.env.EMAIL,
@@ -91,7 +94,7 @@ const administerTest = asyncHandler(async (req, res) => {
                         <p>You have been assigned a new test on QzPlatform. Please log in to your account to access the test.</p>
                         <p>Test Name: ${test.testName}</p>
                         <p>Instructions: ${test.instruction}</p>
-                        <p>To access the test, use the following link: <a href="${generateSharableLink(test._id, 'restricted')}">Access Test</a></p>
+                        <p>To access the test, use the following link: <a href="${emailLink}">Access Test</a></p>
                         <p>If you have any questions, please contact our support team.</p>
                         <p>Best regards,<br> The QzPlatform Team</p>
                     `
@@ -105,7 +108,8 @@ const administerTest = asyncHandler(async (req, res) => {
             test.assignment.method = 'link';
             test.assignment.linkSharing = assignment.linkSharing || 'restricted';
 
-            const link = generateSharableLink(test._id, assignment.linkSharing);
+            // Generate the link with embedded settings
+            const link = generateSharableLink(test, assignment.linkSharing);
             return res.status(200).json({ message: 'Test configured successfully', test, link });
         }
     }
