@@ -2,7 +2,7 @@ const asyncHandler = require("express-async-handler");
 const { sendMail } = require("../utils/sendEmail");
 const User = require("../models/Users");
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto'); // Import crypto library
+const generateRandomPassword = require("../utils/generatePassword");
 
 //@desc Create User
 //@route POST /api/users
@@ -24,7 +24,7 @@ const createUser = asyncHandler(async (req, res) => {
     }
 
     // Generate a random password
-    const randomPassword = crypto.randomBytes(8).toString('hex'); // Generates a random 16-character hex password
+    const randomPassword = generateRandomPassword(); // Generates a random 16-character hex password
 
     // Hash the generated password before saving
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
