@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const Test = require('../models/tests');
+const express = require('express');
 //const User = require('../models/User');
 //const Group = require('../models/Group');
 const { sendMail } = require('../utils/sendEmail');
@@ -7,7 +8,7 @@ const { generateSharableLink } = require('../utils/generateSharebleLink'); // Up
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
-// @access  private
+// @access  public
 const administerTest = asyncHandler(async (req, res) => {
     const { testId } = req.params;
     const {
@@ -20,6 +21,8 @@ const administerTest = asyncHandler(async (req, res) => {
 
     // Find the test by ID
     const test = await Test.findById(testId);
+
+    console.log(test);
     if (!test) {
         return res.status(404).json({ message: 'Test not found' });
     }

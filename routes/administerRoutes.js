@@ -4,9 +4,12 @@ const { administerTest, updateTestSettings } = require('../controllers/administe
 
 
 //Route for administering Test
-router.post('/', administerTest);
+router.post('/:testId', administerTest);
+
+//Route for getting all Administered Test
+router.post('/', listAdministeredTests);
 
 //Route for updating Test Settings
-router.patch('/', updateTestSettings);
+router.patch('/:testId', updateTestSettings);
 
 module.exports = router;
