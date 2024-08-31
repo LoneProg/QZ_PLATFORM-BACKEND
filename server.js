@@ -17,7 +17,8 @@ app.use("/api/groups", require("./routes/groupRoutes"));
 app.use("/api/auths", require("./routes/authRoutes"));
 app.use("/api/tests", require("./routes/testRoutes"));
 app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
-app.use("/api/questions", require("./routes/questionBankRoutes"))
+app.use("/api/questions", require("./routes/questionBankRoutes"));
+app.use("/api/tests/:testId/administer", require("./routes/administerRoutes"));
 
 app.use(errorHandler);
 

@@ -1,7 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const Test = require('../models/Test');
+const Test = require('../models/tests');
+//const User = require('../models/User');
+//const Group = require('../models/Group');
 const { sendMail } = require('../utils/sendEmail');
-const { generateSharableLink } = require('../utils/generateLink'); // Updated utility
+const { generateSharableLink } = require('../utils/generateSharebleLink'); // Updated utility
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -123,5 +125,66 @@ const administerTest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Failed to administer test", error });
     }
 });
+// @Desc    Update test configuration and administration settings
+// @route   PATCH /api/tests/:testId/administer
+// @access  private
+const updateTestSettings = asyncHandler(async (req, res) => {
+    const { testId } = req.params;
+    const {
+        scheduling,
+        timeAndAttempts,
+        configuration,
+        proctoring
+    } = req.body;
 
-module.exports = { administerTest };
+    // Find the test by ID
+    const test = await Test.findById(testId);
+    if (!test) {
+        return res.status(404).json({ message: 'Test not found' });
+    }
+
+    // Update scheduling settings
+    if (scheduling) {
+        test.scheduling = {
+            ...test.scheduling,
+            ...scheduling,
+            status: scheduling.endDate ? 'scheduled' : 'active'
+        };
+    }
+
+    // Update time and attempts settings
+    if (timeAndAttempts) {
+        test.timeAndAttempts = {
+            ...test.timeAndAttempts,
+            ...timeAndAttempts
+        };
+    }
+
+    // Update test configuration settings
+    if (configuration) {
+        test.configuration = {
+            ...test.configuration,
+            ...configuration
+        };
+    }
+
+    // Update proctoring settings
+    if (proctoring) {
+        test.proctoring = {
+            ...test.proctoring,
+            ...proctoring
+        };
+    }
+
+    // Save the updated test
+    try {
+        await test.save();
+        res.status(200).json({ message: 'Test settings updated successfully', test });
+    } catch (error) {
+        console.error("Error Updating Test Settings:", error);
+        res.status(500).json({ message: "Failed to update test settings", error });
+    }
+});
+
+
+module.exports = { administerTest, updateTestSettings };
