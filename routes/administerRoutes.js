@@ -9,7 +9,7 @@ const { administerTest,
 router.post('/:testId', administerTest);
 
 //Route for getting all Administered Test
-router.post('/testId', getAdministerSettings);
+router.get('/:testId', getAdministerSettings);
 
 //Route for updating Test Settings
 router.patch('/:testId', updateTestSettings);

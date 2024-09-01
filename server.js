@@ -4,6 +4,8 @@ const authHandler = require("./middlewares/authHandler");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
+const {executeScheduledAssignments} = require('./utils/scheduler')
+
 require('dotenv').config();
 
 // configuring server
@@ -24,7 +26,8 @@ app.use(errorHandler);
 
 // Connect to MongoDB
 connectDB();
-
+//Integrate Scheduler
+executeScheduledAssignments();
 // Running Server
 app.listen(port, () => {
     console.log(`Server running on ${port}`);

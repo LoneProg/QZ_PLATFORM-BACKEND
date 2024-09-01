@@ -31,17 +31,23 @@ const TestSchema = new Schema({
 
     // Simplified proctoring settings
     proctoring: {
-        allowEdit: { type: Boolean, default: false } // Controls editing, copying, pasting, and selecting
+        allowEdit: { type: Boolean, default: false }, // Controls editing, copying, pasting, and selecting
     },
 
     // Assignment settings
     assignment: {
         method: { type: String, enum: ['manual', 'email', 'link'], default: 'manual' }, // Assignment method
+
+        // Scheduled assignment settings
+        scheduledAssignment: {
+            enabled: { type: Boolean, default: false },
+            scheduledTime: { type: Date }, // The date and time when the test should be assigned
+        },
         
         // Fields for manual assignment
         manualAssignment: {
             individualUsers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Array of individual user IDs
-            groups: [{ type: Schema.Types.ObjectId, ref: 'Group' }] // Array of group IDs
+            groups: [{ type: Schema.Types.ObjectId, ref: 'Group' }], // Array of group IDs
         },
         
         // For email invitations
@@ -51,9 +57,9 @@ const TestSchema = new Schema({
         linkSharing: {
             type: String,
             enum: ['public', 'restricted'],
-            default: 'restricted'
+            default: 'restricted',
         }
-    }
+    },
 }, {
     timestamps: true // Automatically adds createdAt and updatedAt fields
 });

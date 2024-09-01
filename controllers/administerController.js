@@ -5,7 +5,7 @@ const express = require('express');
 //const Group = require('../models/Group');
 const { sendMail } = require('../utils/sendEmail');
 const { generateSharableLink } = require('../utils/generateSharebleLink'); // Updated utility
-const { generateRandomPassword} = require('../utils/generatePassowrd');
+const { generateRandomPassword} = require('../utils/generatePassword');
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -66,6 +66,21 @@ const administerTest = asyncHandler(async (req, res) => {
 
     // Apply assignment settings
     if (assignment) {
+        if (assignment.scheduledAssignment) {
+            test.assignment.scheduledAssignment.enabled = true;
+
+            // Validate and parse the scheduledTime string to a Date object
+            if (assignment.scheduledAssignment.scheduledTime) {
+                const parsedDate = new Date(assignment.scheduledAssignment.scheduledTime);
+                
+                if (isNaN(parsedDate.getTime())) {
+                    return res.status(400).json({ message: 'Invalid date format for scheduledTime' });
+                }
+
+                test.assignment.scheduledAssignment.scheduledTime = parsedDate;
+            }
+        }
+
         // Handle manual assignment for individual users and groups
         if (assignment.method === 'manual') {
             test.assignment.method = 'manual';
@@ -129,6 +144,8 @@ const administerTest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Failed to administer test", error });
     }
 });
+
+
 
 // @Desc    Get administration settings for a test
 // @route   GET /api/tests/:testId/administer
