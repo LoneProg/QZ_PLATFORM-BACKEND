@@ -21,6 +21,7 @@ app.use("/api/tests", require("./routes/testRoutes"));
 app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
 app.use("/api/questions", require("./routes/questionBankRoutes"));
 app.use("/api/tests/administer", require("./routes/administerRoutes"));
+app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 
 app.use(errorHandler);
 
