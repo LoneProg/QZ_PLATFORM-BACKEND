@@ -1,11 +1,11 @@
 const asyncHandler = require("express-async-handler");
 const Test = require('../models/tests');
 const express = require('express');
-//const User = require('../models/User');
-//const Group = require('../models/Group');
+const User = require('../models/Users');
+// const Group = require('../models/Group');
 const { sendMail } = require('../utils/sendEmail');
 const { generateSharableLink } = require('../utils/generateSharebleLink'); // Updated utility
-const { generateRandomPassword} = require('../utils/generatePassword');
+const { generateRandomPassword } = require('../utils/generatePassword');
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -60,34 +60,36 @@ const administerTest = asyncHandler(async (req, res) => {
 
     if (assignment) {
         if (assignment.scheduledAssignment) {
-            test.assignment.scheduledAssignment.enabled = true;
+            test.assignment.scheduledAssignment = {
+                ...test.assignment.scheduledAssignment,
+                enabled: true,
+                scheduledTime: new Date(assignment.scheduledAssignment.scheduledTime)
+            };
 
-            if (assignment.scheduledAssignment.scheduledTime) {
-                const parsedDate = new Date(assignment.scheduledAssignment.scheduledTime);
-
-                if (isNaN(parsedDate.getTime())) {
-                    return res.status(400).json({ message: 'Invalid date format for scheduledTime' });
-                }
-
-                test.assignment.scheduledAssignment.scheduledTime = parsedDate;
+            if (isNaN(test.assignment.scheduledAssignment.scheduledTime.getTime())) {
+                return res.status(400).json({ message: 'Invalid date format for scheduledTime' });
             }
         }
 
         if (assignment.method === 'manual') {
             test.assignment.method = 'manual';
             if (assignment.manualAssignment) {
+                let individualUserIds = [];
+
+                // Find ObjectIds for each email in individualUsers
                 if (assignment.manualAssignment.individualUsers) {
-                    test.assignment.manualAssignment = {
-                        ...test.assignment.manualAssignment,
-                        individualUsers: assignment.manualAssignment.individualUsers
-                    };
+                    individualUserIds = await User.find({
+                        email: { $in: assignment.manualAssignment.individualUsers }
+                    }).select('_id');
+
+                    individualUserIds = individualUserIds.map(user => user._id);
                 }
-                if (assignment.manualAssignment.groups) {
-                    test.assignment.manualAssignment = {
-                        ...test.assignment.manualAssignment,
-                        groups: assignment.manualAssignment.groups
-                    };
-                }
+
+                test.assignment.manualAssignment = {
+                    ...test.assignment.manualAssignment,
+                    individualUsers: individualUserIds,
+                    groups: assignment.manualAssignment.groups || []
+                };
             }
         }
 
@@ -101,6 +103,7 @@ const administerTest = asyncHandler(async (req, res) => {
             test.assignment.linkSharing = assignment.linkSharing || 'restricted';
 
             const link = generateSharableLink(test, assignment.linkSharing);
+            await test.save(); // Save before returning link
             return res.status(200).json({ message: 'Test configured successfully', test, link });
         }
     }
@@ -113,7 +116,6 @@ const administerTest = asyncHandler(async (req, res) => {
         res.status(500).json({ message: "Failed to administer test", error });
     }
 });
-
 
 // @Desc    Get administration settings for a test
 // @route   GET /api/tests/:testId/administer
@@ -139,7 +141,6 @@ const getAdministerSettings = asyncHandler(async (req, res) => {
 
     res.status(200).json({ message: 'Administration settings retrieved successfully', administrationSettings });
 });
-
 
 // @Desc    Update test configuration and administration settings
 // @route   PATCH /api/tests/:testId/administer
@@ -202,9 +203,8 @@ const updateTestSettings = asyncHandler(async (req, res) => {
     }
 });
 
-
-module.exports = { 
-    administerTest, 
+module.exports = {
+    administerTest,
     getAdministerSettings,
-    updateTestSettings 
+    updateTestSettings
 };
