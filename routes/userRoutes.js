@@ -1,9 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const { getUsers, createUser, getUser, updateUser, deleteUser } = require("../controllers/userController");
-
+const { 
+    getUsers, 
+    createUser, 
+    createUsersFromCSV, 
+    getUser, 
+    updateUser, 
+    deleteUser } = require("../controllers/userController");
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' }); // configure multer to save uploaded files
+    
 //add a user
 router.route('/').post(createUser);
+
+//upload users from CSV
+router.post('/upload', upload.single('file'), createUsersFromCSV);
 
 //get all users
 router.route('/').get(getUsers);

@@ -78,6 +78,83 @@ const createUser = asyncHandler(async (req, res) => {
     }
 });
 
+//@desc Create Users from CSV
+//@route POST /api/users/upload
+//@access public
+const createUsersFromCSV = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        res.status(400);
+        throw new Error("Please upload a CSV file");
+    }
+
+    const results = [];
+    const filePath = path.join(__dirname, '../uploads', req.file.filename);
+
+    fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (data) => results.push(data))
+        .on('end', async () => {
+            const createdUsers = [];
+            const errors = [];
+
+            for (let row of results) {
+                const { name, email, role } = row;
+
+                // Validation
+                if (!name || !email) {
+                    errors.push({ email, message: "Name and email are mandatory" });
+                    continue;
+                }
+
+                // Check if user exists
+                const userExists = await User.findOne({ email });
+                if (userExists) {
+                    errors.push({ email, message: "User already exists" });
+                    continue;
+                }
+
+                // Generate a random password
+                const randomPassword = generateRandomPassword(); 
+
+                // Hash the generated password before saving
+                const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+                // Create user
+                const user = await User.create({
+                    name,
+                    email,
+                    password: hashedPassword,
+                    role
+                });
+
+                createdUsers.push(user);
+
+                // Send email notification with generated password
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: email,
+                    subject: 'Welcome to QzPlatform!',
+                    html: `
+                        <p>Dear ${name},</p>
+                        <p>Welcome to <strong>QzPlatform</strong>!</p>
+                        <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
+                        <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
+                        <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
+                        <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
+                    `
+                };
+                await sendMail(mailOptions);
+            }
+
+            res.status(201).json({
+                message: "Users created successfully from CSV",
+                createdUsers,
+                errors
+            });
+        });
+});
+
+
 //@desc Get all Users
 //@route GET /api/users
 //@access public
@@ -167,6 +244,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 module.exports = {
     createUser,
+    createUsersFromCSV,
     getUsers,
     getUser,
     updateUser,
