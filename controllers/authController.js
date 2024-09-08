@@ -33,7 +33,7 @@ const register = async (req, res) => {
             html: `
                 <p>Dear ${firstName},</p>
         
-                <p>Welcome to QzPlatform! We are thrilled to have you join our community as a Test Creator. Your registration was successful, and you are now ready to explore all the features and tools we offer to help you create engaging and effective assessments.</p>
+                <p>Welcome to QzPlatform! We are thrilled to have you join our community as a ${user.role}. Your registration was successful, and you are now ready to explore all the features and tools we offer to help you create engaging and effective assessments.</p>
         
                 <p>To get started, please log in to your account using your registered email address. We encourage you to take a moment to familiarize yourself with the platform, set up your profile, and begin creating your first test.</p>
         
@@ -89,6 +89,8 @@ const forgotPassword = async (req, res) => {
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         const resetPasswordUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
+        console.log("Generated Reset URL:", resetPasswordUrl);
+
 
         // Assuming your User model has a resetPasswordToken and resetPasswordExpires fields
         user.resetPasswordToken = resetToken;
