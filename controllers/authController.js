@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendMail } = require('../utils/sendEmail');
 const User = require('../models/Users'); 
+require("dotenv").config();
 
 // Registration (SignUp) for Test Creator
 const register = async (req, res) => {
@@ -23,13 +24,14 @@ const register = async (req, res) => {
             password: hashedPassword,
             role
         });
+        const firstName = user.name.split(' ')[0];
 
         await sendMail({
             from: process.env.EMAIL,
             to: user.email,
             subject: 'Welcome to QzPlatform!',
             html: `
-                <p>Dear ${user.name},</p>
+                <p>Dear ${firstName},</p>
         
                 <p>Welcome to QzPlatform! We are thrilled to have you join our community as a Test Creator. Your registration was successful, and you are now ready to explore all the features and tools we offer to help you create engaging and effective assessments.</p>
         
@@ -92,6 +94,7 @@ const forgotPassword = async (req, res) => {
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
+        const firstName = user.name.split(' ')[0];
 
         // Send reset password email
         await sendMail({
@@ -99,7 +102,7 @@ const forgotPassword = async (req, res) => {
             to: user.email,
             subject: 'Password Reset Request - QzPlatform',
             html: `
-                <p>Dear ${user.name},</p>
+                <p>Dear ${firstName},</p>
         
                 <p>We received a request to reset the password for your account on QzPlatform. To proceed with the password reset, please click the link below:</p>
         
