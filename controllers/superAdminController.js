@@ -3,6 +3,7 @@ const user = require('../models/Users');
 const group = require('../models/Groups');
 const test = require('../models/Tests');
 const question = require('../models/Questions');
+const performAnalytics = require ('../models/platformAnalytics');
 
 //@Desc get qzplatform stats
 //@Route GET /api/superadmin/stats
@@ -12,6 +13,20 @@ const getplatformStats = asyncHandler(async (req, res) => {
     const totalGroups = await group.countDocuments();
     const totalTests = await test.countDocuments();
     const totalQuestions = await question.countDocuments();
+    const testTakers = await user.countDocuments({ role: 'testTaker' });
+    const testCreators = await user.countDocuments({ role: 'testCreator' });
+    const activeUsers = await user.countDocuments({ isActive: true });
+    const inactiveUsers = await user.countDocuments({ isActive: false });
+
+    //save all the analytics to database platformanalytics
+    const analytics = new performAnalytics({
+        totalUsers,
+        totalGroups,
+        totalTests,
+        totalQuestions,
+        activeUsers,
+        inactiveUsers
+    });
 
     res.status(200).json({ totalUsers, totalGroups, totalTests, totalQuestions });
 });
@@ -40,17 +55,38 @@ const toggleUserStatus = syncHandler(async (req, res) => {
 //@Desc monthly user registration stats
 //@Route GET /api/superadmin/users/user-flow
 //@Access Public
-const monthlyUserFlow = asyncHandler(async (req, res) => {
-    const userFlow - await user.aggregate([
-        {
-            $group: {
-                _id: { $month: '$timestamp' },
-                count: { $sum: 1 }
-            }
-        },
-        { $sort: {"id.year": 1, "_id.month": 1} }
-    ]);
-    res.status(200).json(userFlow);
+const getMonthlyUserFlow = asyncHandler(async (req, res) => {
+    const currentYear = new Date().getFullYear();
+    const monthlyData = [];
+
+    for (let month = 0; month < 12; month++) {
+        const startOfMonth = new Date(currentYear, month, 1);
+        const endOfMonth = new Date(currentYear, month + 1, 0);
+
+        const newTestCreators = await User.countDocuments({
+            role: 'testCreator',
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+        });
+
+        const newTestTakers = await User.countDocuments({
+            role: 'testTaker',
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth }
+        });
+
+        monthlyData.push({
+            month: month + 1, // 1-based month
+            newTestCreators,
+            newTestTakers
+        });
+    }
+
+    res.json(monthlyData);
 });
 
-module.exports = { getplatformStats };
+
+module.exports = { 
+    getplatformStats,
+    listAllUsers,
+    toggleUserStatus,
+    getMonthlyUserFlow
+};

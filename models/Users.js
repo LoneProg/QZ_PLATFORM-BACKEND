@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
     enum: ['admin', 'testCreator', 'testTaker'],
     default: 'testTaker',
   },
-
+  status: {type: Boolean, default: true},
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 }, { timestamps: true });
