@@ -86,7 +86,7 @@ const forgotPassword = async (req, res) => {
         }
 
         const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetPasswordUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+        const resetPasswordUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
 
         // Assuming your User model has a resetPasswordToken and resetPasswordExpires fields
         user.resetPasswordToken = resetToken;
