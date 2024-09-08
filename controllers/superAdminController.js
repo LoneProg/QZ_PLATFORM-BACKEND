@@ -1,91 +1,126 @@
 const asyncHandler = require('express-async-handler');
-const user = require('../models/Users');
-const group = require('../models/Groups');
-const test = require('../models/Tests');
-const question = require('../models/Questions');
-const performAnalytics = require ('../models/platformAnalytics');
+const User = require('../models/Users');
+const Group = require('../models/Groups');
+const Test = require('../models/Tests');
+const Question = require('../models/Questions');
+const PlatformAnalytics = require('../models/platformAnalytics');
 
 //@Desc get qzplatform stats
 //@Route GET /api/superadmin/stats
-//@Access Public
-const getplatformStats = asyncHandler(async (req, res) => {
-    const totalUsers = await user.countDocuments();
-    const totalGroups = await group.countDocuments();
-    const totalTests = await test.countDocuments();
-    const totalQuestions = await question.countDocuments();
-    const testTakers = await user.countDocuments({ role: 'testTaker' });
-    const testCreators = await user.countDocuments({ role: 'testCreator' });
-    const activeUsers = await user.countDocuments({ isActive: true });
-    const inactiveUsers = await user.countDocuments({ isActive: false });
+//@Access Private (Super Admin only)
+const getPlatformStats = asyncHandler(async (req, res) => {
+    const totalUsers = await User.countDocuments();
+    const totalGroups = await Group.countDocuments();
+    const totalTests = await Test.countDocuments();
+    const totalQuestions = await Question.countDocuments();
+    const testTakers = await User.countDocuments({ role: 'testTaker' });
+    const testCreators = await User.countDocuments({ role: 'testCreator' });
+    const activeUsers = await User.countDocuments({ isActive: true });
+    const inactiveUsers = await User.countDocuments({ isActive: false });
 
-    //save all the analytics to database platformanalytics
-    const analytics = new performAnalytics({
+    // Save analytics to the database
+    const analytics = new PlatformAnalytics({
         totalUsers,
         totalGroups,
         totalTests,
         totalQuestions,
         activeUsers,
-        inactiveUsers
+        inactiveUsers,
+        message: 'Analytics saved successfully'
     });
+    await analytics.save();
 
-    res.status(200).json({ totalUsers, totalGroups, totalTests, totalQuestions });
+    res.status(200).json({
+        totalUsers,
+        totalGroups,
+        totalTests,
+        totalQuestions,
+        testTakers,
+        testCreators,
+        activeUsers,
+        inactiveUsers,
+        message: 'Platform statistics retrieved successfully'
+    });
 });
 
-//@Desc get all users
+//@Desc get all users with pagination
 //@Route GET /api/superadmin/users
-//@Access Public
+//@Access Private (Super Admin only)
 const listAllUsers = asyncHandler(async (req, res) => {
-    const users = await user.find().select('name email role isActive timestamp');
-    res.status(200).json(users);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const users = await User.find()
+        .select('name email role isActive timestamp')
+        .skip(skip)
+        .limit(limit);
+
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+        users,
+        page,
+        totalPages: Math.ceil(totalUsers / limit),
+        totalUsers
+    });
 });
 
-//@Desc Disable/enable user
+//@Desc Disable/enable user status
 //@Route PUT /api/superadmin/users/:userId
-//@Access Public
-const toggleUserStatus = syncHandler(async (req, res) => {
-    const user = await user.findById(req.params.userId);
-    if (!user) {
+//@Access Private (Super Admin only)
+const toggleUserStatus = asyncHandler(async (req, res) => {
+    const foundUser = await User.findById(req.params.userId);
+    if (!foundUser) {
         return res.status(404).json({ message: 'User not found' });
     }
-    user.isActive = !user.isActive;
-    await user.save();
-    res.status(200).json({ message: 'User status updated successfully', isActive: user.isActive });
+    
+    // Check if requester is Super Admin
+    if (!req.user.isSuperAdmin) {
+        return res.status(403).json({ message: 'You are not authorized to perform this action' });
+    }
+    
+    // Toggle user status
+    foundUser.isActive = !foundUser.isActive;
+    await foundUser.save();
+
+    res.status(200).json({
+        message: `User status updated successfully`,
+        isActive: foundUser.isActive
+    });
 });
 
 //@Desc monthly user registration stats
 //@Route GET /api/superadmin/users/user-flow
-//@Access Public
+//@Access Private (Super Admin only)
 const getMonthlyUserFlow = asyncHandler(async (req, res) => {
     const currentYear = new Date().getFullYear();
-    const monthlyData = [];
 
-    for (let month = 0; month < 12; month++) {
-        const startOfMonth = new Date(currentYear, month, 1);
-        const endOfMonth = new Date(currentYear, month + 1, 0);
+    const userFlow = await User.aggregate([
+        {
+            $match: {
+                createdAt: {
+                    $gte: new Date(`${currentYear}-01-01`),
+                    $lte: new Date(`${currentYear}-12-31`)
+                }
+            }
+        },
+        {
+            $group: {
+                _id: { month: { $month: '$createdAt' }, role: '$role' },
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $sort: { '_id.month': 1 }  // Sort by month
+        }
+    ]);
 
-        const newTestCreators = await User.countDocuments({
-            role: 'testCreator',
-            createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-        });
-
-        const newTestTakers = await User.countDocuments({
-            role: 'testTaker',
-            createdAt: { $gte: startOfMonth, $lte: endOfMonth }
-        });
-
-        monthlyData.push({
-            month: month + 1, // 1-based month
-            newTestCreators,
-            newTestTakers
-        });
-    }
-
-    res.json(monthlyData);
+    res.status(200).json(userFlow);
 });
 
-
-module.exports = { 
-    getplatformStats,
+module.exports = {
+    getPlatformStats,
     listAllUsers,
     toggleUserStatus,
     getMonthlyUserFlow
