@@ -86,10 +86,10 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if requester is Super Admin
-    if (!req.user.isSuperAdmin) {
-        return res.status(403).json({ message: 'You are not authorized to perform this action' });
-    }
+    // // Check if requester is Super Admin
+    // if (!req.user.isSuperAdmin) {
+    //     return res.status(403).json({ message: 'You are not authorized to perform this action' });
+    // }
 
     // Toggle user status
     foundUser.isActive = !foundUser.isActive;
