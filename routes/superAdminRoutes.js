@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { 
+const {
+    register,
+    login,
+    forgotPassword,
+    changePassword, 
     getPlatformStats,  
     listAllUsers, 
     toggleUserStatus, 
@@ -9,6 +13,18 @@ const {
 
 // Middleware for authentication and role checking
 //const { protect, isAdmin } = require('../middlewares/authHandler');
+
+// Route to register super admin
+router.post('/register', getPlatformStats);
+
+// Route to login super admin
+router.post('/login', login);
+
+// Route get reset password token for super Admin
+router.post('/forgot-password', forgotPassword);
+
+// Route to change or reset password for super Admin
+router.post('/reset-password', resetPassword);
 
 // Route to Get platform statistics
 router.get('/stats', getPlatformStats);
