@@ -33,4 +33,4 @@ const platformAnalyticsSchema = new Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model('platformAnalytics', platformAnalytics);
+module.exports = mongoose.model('platformAnalytics', platformAnalyticsSchema);

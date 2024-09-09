@@ -1,9 +1,9 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/Users');
-const Group = require('../models/Groups');
-const Test = require('../models/Tests');
-const Question = require('../models/Questions');
-const PlatformAnalytics = require('../models/platformAnalytics');
+const Group = require('../models/groups');
+const Test = require('../models/tests');
+const Question = require('../models/questions');
+const platformAnalytics = require('../models/platformAnalytics');
 
 //@Desc get qzplatform stats
 //@Route GET /api/superadmin/stats
