@@ -52,7 +52,7 @@ const listAllUsers = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const users = await User.find()
-        .select('name email role isActive createdAt updatedAt')
+        .select('name email role isActive createdAt updatedAt _id')
         .skip(skip)
         .limit(limit);
 
@@ -63,6 +63,7 @@ const listAllUsers = asyncHandler(async (req, res) => {
         status: user.isActive ? 'Active' : 'Inactive', // Status based on isActive
         createdDate: user.createdAt.toISOString().split('T')[0], // Format created date
         modifiedDate: user.updatedAt.toISOString().split('T')[0] // Format modified date
+        userId: user._id
     }));
 
     const totalUsers = await User.countDocuments();
