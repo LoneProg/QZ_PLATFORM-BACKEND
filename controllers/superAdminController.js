@@ -3,7 +3,7 @@ const User = require('../models/Users');
 const Group = require('../models/groups');
 const Test = require('../models/tests');
 const Question = require('../models/questions');
-const platformAnalytics = require('../models/platformAnalytics');
+const PlatformAnalytics = require('../models/platformAnalytics');
 
 //@Desc get qzplatform stats
 //@Route GET /api/superadmin/stats
@@ -74,12 +74,12 @@ const toggleUserStatus = asyncHandler(async (req, res) => {
     if (!foundUser) {
         return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // Check if requester is Super Admin
     if (!req.user.isSuperAdmin) {
         return res.status(403).json({ message: 'You are not authorized to perform this action' });
     }
-    
+
     // Toggle user status
     foundUser.isActive = !foundUser.isActive;
     await foundUser.save();

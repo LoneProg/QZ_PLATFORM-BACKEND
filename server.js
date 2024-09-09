@@ -4,12 +4,11 @@ const authHandler = require("./middlewares/authHandler");
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
-const {executeScheduledAssignments} = require('./utils/scheduler')
-
+const { executeScheduledAssignments } = require('./utils/scheduler');
 
 require('dotenv').config();
 
-// configuring server
+// Configuring server
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -23,15 +22,15 @@ app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
 app.use("/api/questions", require("./routes/questionBankRoutes"));
 app.use("/api/tests/administer", require("./routes/administerRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.user("api/superadmin", require("./routes/superAdminRoutes"));
+app.use("/api/superadmin", require("./routes/superAdminRoutes")); // FIXED: "app.use" not "app.user"
 
 app.use(errorHandler);
 
 // Connect to MongoDB
 connectDB();
-//Integrate Scheduler
+// Integrate Scheduler
 executeScheduledAssignments();
 // Running Server
 app.listen(port, () => {
-    console.log(`Server running on ${port}`);
+    console.log(`Server running on port ${port}`);
 });

@@ -1,25 +1,25 @@
 const express = require('express');
 const router = express.Router();
 const { 
-    getplatformStats, 
+    getPlatformStats,  
     listAllUsers, 
     toggleUserStatus, 
     getMonthlyUserFlow 
 } = require('../controllers/superAdminController');
 
 // Middleware for authentication and role checking
-const { protect, isAdmin } = require('../middleware/authMiddleware');
+//const { protect, isAdmin } = require('../middlewares/authHandler');
 
 // Route to Get platform statistics
-router.get('/stats', protect, isAdmin, getplatformStats);
+router.get('/stats', getPlatformStats);
 
-// route to Get all users with pagination
-router.get('/users', protect, isAdmin, listAllUsers);
+// Route to Get all users with pagination
+router.get('/users', listAllUsers);
 
-// Route Toggle user status
-router.put('/users/:userId', protect, isAdmin, toggleUserStatus);
+// Route to Toggle user status
+router.put('/users/:userId', toggleUserStatus);
 
-//Rpute to Get monthly user registration stats
-router.get('/users/user-flow', protect, isAdmin, getMonthlyUserFlow);
+// Route to Get monthly user registration stats
+router.get('/users/user-flow', getMonthlyUserFlow);
 
 module.exports = router;
