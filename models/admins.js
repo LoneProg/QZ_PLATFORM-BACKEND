@@ -18,4 +18,4 @@ const AdminSchema = new mongoose.Schema({
   resetPasswordExpires: Date,
 }, { timestamps: true });
 
-module.exports = mongoose.model('Admin', UserSchema);
+module.exports = mongoose.model('Admin', AdminSchema);

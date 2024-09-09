@@ -24,7 +24,7 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 
 // Route to change or reset password for super Admin
-router.post('/reset-password', resetPassword);
+router.post('/reset-password', changePassword);
 
 // Route to Get platform statistics
 router.get('/stats', getPlatformStats);
