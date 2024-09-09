@@ -62,7 +62,7 @@ const listAllUsers = asyncHandler(async (req, res) => {
         role: user.role,
         status: user.isActive ? 'Active' : 'Inactive', // Status based on isActive
         createdDate: user.createdAt.toISOString().split('T')[0], // Format created date
-        modifiedDate: user.updatedAt.toISOString().split('T')[0] // Format modified date
+        modifiedDate: user.updatedAt.toISOString().split('T')[0], // Format modified date
         userId: user._id
     }));
 
