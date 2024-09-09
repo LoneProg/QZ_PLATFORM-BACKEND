@@ -52,19 +52,29 @@ const listAllUsers = asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const users = await User.find()
-        .select('name email role isActive timestamp')
+        .select('name email role isActive createdAt updatedAt')
         .skip(skip)
         .limit(limit);
+
+    const formattedUsers = users.map(user => ({
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        status: user.isActive ? 'Active' : 'Inactive', // Status based on isActive
+        createdDate: user.createdAt.toISOString().split('T')[0], // Format created date
+        modifiedDate: user.updatedAt.toISOString().split('T')[0] // Format modified date
+    }));
 
     const totalUsers = await User.countDocuments();
 
     res.status(200).json({
-        users,
+        users: formattedUsers,
         page,
         totalPages: Math.ceil(totalUsers / limit),
         totalUsers
     });
 });
+
 
 //@Desc Disable/enable user status
 //@Route PUT /api/superadmin/users/:userId
