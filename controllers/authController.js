@@ -2,16 +2,16 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendMail } = require('../utils/sendEmail');
-const admin = require('../models/admins'); 
+const user = require('../models/Users'); 
 require("dotenv").config();
 
-//@Desc Registration (SignUp) for SuperAdmin
+//@Desc Registration for users
 const register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
 
         // Check if user already exists
-        const existingUser = await admin.findOne({ email });
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ message: 'User already exists' });
         }
