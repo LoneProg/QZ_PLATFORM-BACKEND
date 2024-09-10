@@ -16,12 +16,21 @@ const addToWaitlist = async (req, res) => {
         const newEntry = new Waitlist({ email });
         await newEntry.save();
 
+        
         // You can send a confirmation email here if required
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
             subject: 'Subscription Confirmation',
-            text: 'You have been added to the waitlist for our upcoming product launch!',
+            html: `
+            <p>Dear Esteemed Value Customer, </p>
+            <p> You have been successfully added to the qzplatform waitlist!</p>
+
+            <p>Get ready to explore a seamless enhanced assessment with  fusion of creativity and technology in simplifying the assessment processes </p>
+
+            </p>Watchout as the countdown begins.....!</p>
+            <p>Best regards,<br>
+            <strong>The QzPlatform Team</strong></p>`
         };
 
         await sendMail(mailOptions);
@@ -51,7 +60,15 @@ const notifyUsers = async () => {
         const mailOptions = {
             from: process.env.EMAIL,
             subject: 'Product Launch Notification',
-            text: 'Our product is now available! Check it out at our website.',
+            html: `
+            <p>Hurray!</p>,
+            <p>Your wait is over as the qzplatform goes live!</p>
+            <p> We are pleased to welcome you on board as you begin to explore   our simplified assessment platform, the first of its kind and  solutions  to all your assessments needs </p>
+            <p> A seamless assessment process awaits you.</p>
+            <p> Let's start! <a href="https://qzplatform.com">Click here to get started</a></p>
+
+            <p>Best regards,<br>
+            <strong>The QzPlatform Team</strong></p>`
         };
 
         users.forEach(async (user) => {
