@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { sendMail } = require('../utils/sendEmail');
-const user = require('../models/Users'); 
+const User = require('../models/Users'); 
 require("dotenv").config();
 
 //@Desc Registration for users
