@@ -23,7 +23,7 @@ app.use("/api/questions", require("./routes/questionBankRoutes"));
 app.use("/api/tests/administer", require("./routes/administerRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/superadmin", require("./routes/superAdminRoutes"));
-app.use("/api/waitlist", require("./routes/waitListRoutes"));
+app.use("/api/waitlist", require("./routes/waitlistRoutes"));
 app.use(errorHandler);
 
 // Start the countdown timer
