@@ -33,6 +33,14 @@ const addToWaitlist = async (req, res) => {
     }
 };
 
+//@Desc get all users on the waitlist
+//@Route GET /api/waitlist
+//@Access Public
+const getWaitlist = asyncHandler(async (req, res) => {
+    const users = await Waitlist.find({});
+    res.json(users);
+});
+
 // Function to send notifications when the product is released
 //@Desc Notify users on the waitlist
 //@Route GET /api/waitlist/notify
@@ -60,4 +68,4 @@ const notifyUsers = async () => {
     }
 };
 
-module.exports = { addToWaitlist, notifyUsers };
+module.exports = { addToWaitlist, getWaitlist, notifyUsers };
