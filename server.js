@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
 const { executeScheduledAssignments } = require('./utils/scheduler');
-const { waitlistRoutes } = require('./routes/waitListRoutes');
 require('dotenv').config();
 const { startCountdown } = require('./utils/countDown');
 
