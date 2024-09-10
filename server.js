@@ -5,8 +5,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const connectDB = require('./config/db');
 const { executeScheduledAssignments } = require('./utils/scheduler');
-
+const { waitlistRoutes } = require('./routes/waitListRoutes');
 require('dotenv').config();
+const { startCountdown } = require('./utils/countDown');
 
 // Configuring server
 const app = express();
@@ -22,9 +23,13 @@ app.use("/api/tests/:testId/questions", require("./routes/questionRoutes"));
 app.use("/api/questions", require("./routes/questionBankRoutes"));
 app.use("/api/tests/administer", require("./routes/administerRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
-app.use("/api/superadmin", require("./routes/superAdminRoutes")); // FIXED: "app.use" not "app.user"
+app.use("/api/superadmin", require("./routes/superAdminRoutes"));
+app.use("/api/waitlist", require("./routes/waitListRoutes"));
 
 app.use(errorHandler);
+
+// Start the countdown timer
+startCountdown();
 
 // Connect to MongoDB
 connectDB();

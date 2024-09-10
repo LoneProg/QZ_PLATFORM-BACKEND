@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const Waitlist = require('../models/Waitlist');
+const Waitlist = require('../models/waitlists');
 const { sendMail } = require('../utils/sendEmail');
 
 //@Desc Add email to waitlist
