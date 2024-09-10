@@ -1,4 +1,5 @@
 const express = require("express");
+const cors = require("cors");
 const errorHandler = require("./middlewares/errorHandler");
 const authHandler = require("./middlewares/authHandler");
 const bcrypt = require('bcryptjs');
@@ -11,6 +12,7 @@ const { startCountdown } = require('./utils/countDown');
 // Configuring server
 const app = express();
 const port = process.env.PORT || 3000;
+
 
 // Middleware Configuration
 app.use(express.json());
@@ -25,6 +27,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/superadmin", require("./routes/superAdminRoutes"));
 app.use("/api/waitlist", require("./routes/waitlistRoutes"));
 app.use(errorHandler);
+app.use(cors());
 
 // Start the countdown timer
 startCountdown();
