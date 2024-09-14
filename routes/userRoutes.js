@@ -8,8 +8,33 @@ const {
     updateUser, 
     deleteUser } = require("../controllers/userController");
 const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // configure multer to save uploaded files
+const path = require('path');
     
+// Configure multer to store uploaded files in 'uploads' folder with original name
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+// File filter for validating file type
+const csvFileFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    if (ext !== '.csv') {
+        return cb(new Error('Only CSV files are allowed'), false);
+    }
+    cb(null, true);
+};
+
+const upload = multer({
+    storage: storage,
+    fileFilter: csvFileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 } // Limit file size to 5MB
+});
+
 //add a user
 router.route('/').post(createUser);
 
