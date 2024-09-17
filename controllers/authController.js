@@ -6,6 +6,8 @@ const User = require('../models/Users');
 require("dotenv").config();
 
 //@Desc Registration for users
+//@Route POST /api/auths/register
+//@Access Public
 const register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -52,30 +54,44 @@ const register = async (req, res) => {
     }
 };
 
-// Login
+//@Desc  Login 
+//@Route POST /api/auths/login
+//@Access Public
 const login = async (req, res) => {
     try {
         const { email, password, role, keepMeSignedIn } = req.body;
 
+        // Find the user by email and role
         const user = await User.findOne({ email, role });
         if (!user) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+        // Compare the entered password with the stored password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: keepMeSignedIn ? '7d' : '1h'
-        });
+        // Generate a token with the user's id and role
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: keepMeSignedIn ? '7d' : '1h'
+            }
+        );
 
-        res.status(200).json({ token });
+        // Send the token and firstname in the response
+        res.status(200).json({
+            token,
+            firstname: user.firstname // Include the user's first name
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
 
 // Forgot Password
 const forgotPassword = async (req, res) => {
