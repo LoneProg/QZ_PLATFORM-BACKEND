@@ -85,7 +85,7 @@ const login = async (req, res) => {
         // Send the token and firstname in the response
         res.status(200).json({
             token,
-            firstname: user.firstname // Include the user's first name
+            firstname: user.name.split(' ')[0] // Include the user's first name
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
