@@ -9,7 +9,7 @@ const { generateRandomPassword } = require('../utils/generatePassword');
 // @Desc    Create a Group
 // @route   POST /api/groups/
 // @access  public
-/ @Desc    Create a Group
+// @Desc    Create a Group
 // @route   POST /api/groups/
 // @access  public
 const createGroup = [
