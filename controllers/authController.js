@@ -18,8 +18,10 @@ const register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        // Create new user
+        // Hash Password
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        //Create a new user
         const user = await User.create({
             name,
             email,
@@ -67,6 +69,11 @@ const login = async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
+        // Check if the user is active
+        if (!user.isActive) {
+            return res.status(403).json({ message: 'You have been deactivated, contact administrator' });
+        }
+
         // Compare the entered password with the stored password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -105,7 +112,7 @@ const forgotPassword = async (req, res) => {
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         //const resetPasswordUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
-        const resetPasswordUrl = `https://qz-platform-backend-1.onrender.com/reset-password/${resetToken}`;
+        const resetPasswordUrl = `https://qzplatform.com/reset-password/${resetToken}`;
         console.log("Generated Reset URL:", resetPasswordUrl);
 
 
