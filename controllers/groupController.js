@@ -9,6 +9,9 @@ const { generateRandomPassword } = require('../utils/generatePassword');
 // @Desc    Create a Group
 // @route   POST /api/groups/
 // @access  public
+/ @Desc    Create a Group
+// @route   POST /api/groups/
+// @access  public
 const createGroup = [
     // Input validation
     body('groupName').not().isEmpty().withMessage('Group name is required'),
@@ -28,13 +31,19 @@ const createGroup = [
             return res.status(400).json({ message: 'Group with this name already exists' });
         }
 
-        // Fetch existing test takers
-        let members = await User.find({ email: { $in: memberEmails }, role: 'testTaker' });
-
-        // Find all users by provided emails
+        // Fetch all users by provided emails
         let allUsers = await User.find({ email: { $in: memberEmails } });
-
         const existingEmails = allUsers.map(user => user.email);
+
+        // Identify emails that do not belong to a 'testTaker'
+        const invalidEmails = allUsers.filter(user => user.role !== 'testTaker').map(user => user.email);
+
+        // If there are invalid emails, return an error
+        if (invalidEmails.length > 0) {
+            return res.status(400).json({
+                message: `The following emails do not belong to a TestTaker: ${invalidEmails.join(', ')}`
+            });
+        }
 
         // Identify new emails that are not yet in the system
         const newEmails = memberEmails.filter(email => !existingEmails.includes(email));
@@ -64,7 +73,7 @@ const createGroup = [
         }
 
         // Combine existing and new members
-        members = [...members, ...createdUsers];
+        const members = [...allUsers, ...createdUsers];
 
         // Create the group
         const group = new Group({
@@ -85,19 +94,11 @@ const createGroup = [
                     subject: 'You Have Been Added to a New Course Group on QzPlatform',
                     html: `
                         <p>Dear ${user.name},</p>
-
-                        <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
-
-                        <p>Your temporary login credentials are as follows:</p>
+                        <p>You have been added to the group "<strong>${groupName}</strong>" on QzPlatform.</p>
+                        <p>Your temporary login credentials are:</p>
                         <p><strong>Email:</strong> ${user.email}</p>
                         <p><strong>Password:</strong> ${user.plainPassword}</p>
-
-                        <p>Please log in to your account using these credentials. For security reasons, we strongly recommend that you change your password immediately after logging in.</p>
-
-                        <p>If you have any questions or require assistance, please do not hesitate to contact our support team.</p>
-
-                        <p>Thank you for being a part of our learning community. We wish you the best in your educational journey.</p>
-
+                        <p>For security reasons, we recommend that you change your password immediately.</p>
                         <p>Best regards,<br>
                         <strong>The QzPlatform Team</strong></p>
                     `
@@ -106,30 +107,20 @@ const createGroup = [
             });
 
             // Send email notifications to existing users
-            members.forEach(user => {
-                // Skip newly created users
-                if (!createdUsers.some(newUser => newUser.email === user.email)) {
-                    const mailOptions = {
-                        from: process.env.EMAIL,
-                        to: user.email,
-                        subject: 'Reminder: Log In to Your QzPlatform Group',
-                        html: `
-                            <p>Dear ${user.name},</p>
-
-                            <p>We would like to remind you that you are a member of the group "<strong>${groupName}</strong>" on QzPlatform.</p>
-
-                            <p>Please log in using your existing credentials to access the group resources, courses, and assessments available to you.</p>
-
-                            <p>If you have any questions or need assistance, feel free to contact our support team.</p>
-
-                            <p>Thank you for your continued participation. We look forward to supporting your learning journey.</p>
-
-                            <p>Best regards,<br>
-                            <strong>The QzPlatform Team</strong></p>
-                        `
-                    };
-                    sendMail(mailOptions);
-                }
+            allUsers.forEach(user => {
+                const mailOptions = {
+                    from: process.env.EMAIL,
+                    to: user.email,
+                    subject: 'Reminder: Log In to Your QzPlatform Group',
+                    html: `
+                        <p>Dear ${user.name},</p>
+                        <p>You are a member of the group "<strong>${groupName}</strong>" on QzPlatform.</p>
+                        <p>Please log in using your existing credentials.</p>
+                        <p>Best regards,<br>
+                        <strong>The QzPlatform Team</strong></p>
+                    `
+                };
+                sendMail(mailOptions);
             });
 
         } catch (error) {
