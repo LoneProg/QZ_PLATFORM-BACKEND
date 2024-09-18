@@ -9,9 +9,6 @@ const { generateRandomPassword } = require('../utils/generatePassword');
 // @Desc    Create a Group
 // @route   POST /api/groups/
 // @access  public
-// @Desc    Create a Group
-// @route   POST /api/groups/
-// @access  public
 const createGroup = [
     // Input validation
     body('groupName').not().isEmpty().withMessage('Group name is required'),
@@ -54,7 +51,6 @@ const createGroup = [
             const hashedPassword = await bcrypt.hash(randomPassword, 10);
             return {
                 name: email.split('@')[0],
-                fullName: email.split('@')[0],
                 email: email,
                 password: hashedPassword,
                 role: 'testTaker',
