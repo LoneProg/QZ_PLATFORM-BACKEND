@@ -106,8 +106,9 @@ const forgotPassword = async (req, res) => {
         const { email } = req.body;
         const user = await User.findOne({ email });
 
+        // Always return success message for security reasons instead of user email not found
         if (!user) {
-            return res.status(400).json({ message: 'User not found' });
+            return res.status(200).json({ message: 'Reset password link sent' });
         }
 
         const resetToken = crypto.randomBytes(32).toString('hex');
@@ -116,10 +117,10 @@ const forgotPassword = async (req, res) => {
         console.log("Generated Reset URL:", resetPasswordUrl);
 
 
-        // Assuming your User model has a resetPasswordToken and resetPasswordExpires fields
         user.resetPasswordToken = resetToken;
         user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
         await user.save();
+
         const firstName = user.name.split(' ')[0];
 
         // Send reset password email
@@ -161,7 +162,9 @@ const changePassword = async (req, res) => {
         }
 
         // Find user by reset token without checking for expiration
-        const user = await User.findOne({ resetPasswordToken: token });
+        const user = await User.findOne({ resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+         });
 
         if (!user) {
             return res.status(400).json({ message: 'Invalid token' });
