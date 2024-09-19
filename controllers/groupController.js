@@ -27,7 +27,7 @@ const createGroup = [
             return res.status(400).json({ message: 'Group with this name already exists' });
         }
 
-        // Fetch existing test takers
+        // Fetch existing test takers by provided emails
         let members = await User.find({ email: { $in: memberEmails }, role: 'testTaker' });
 
         // Find all users by provided emails
@@ -38,22 +38,24 @@ const createGroup = [
         // Identify new emails that are not yet in the system
         const newEmails = memberEmails.filter(email => !existingEmails.includes(email));
 
-        // Create new users for new emails
+        // Create new users for new emails with generated passwords
         const newUsers = await Promise.all(newEmails.map(async (email) => {
-            const hashedPassword = await bcrypt.hash('defaultPassword123', 10);
+            const randomPassword = generateRandomPassword(); // Generate a dynamic password
+            const hashedPassword = await bcrypt.hash(randomPassword, 10); // Hash the password
             return {
-                name: email.split('@')[0],
-                fullName: email.split('@')[0],
+                name: email.split('@')[0], // Use email name as default name
+                fullName: email.split('@')[0], 
                 email: email,
-                password: hashedPassword,
-                role: 'testTaker'
+                password: hashedPassword, // Store hashed password in DB
+                role: 'testTaker',
+                plainPassword: randomPassword // Store plain password temporarily to send in the email
             };
         }));
 
         let createdUsers = [];
         if (newUsers.length > 0) {
             try {
-                createdUsers = await User.insertMany(newUsers);
+                createdUsers = await User.insertMany(newUsers); // Insert new users into the DB
             } catch (error) {
                 console.error("Error Creating New Users:", error);
                 return res.status(500).json({ message: "Failed to create new users", error });
@@ -71,19 +73,32 @@ const createGroup = [
         });
 
         try {
-            await group.save();
+            await group.save(); // Save the group
             res.status(201).json({ message: 'Group created successfully', group, newMembers: createdUsers });
 
-            // Send email notifications to new users
+            // Send email notifications to newly created users with their login credentials
             createdUsers.forEach(user => {
                 const mailOptions = {
                     from: process.env.EMAIL,
                     to: user.email,
-                    subject: 'Welcome to QzPlatform',
-                    text: `Hello ${user.name},\n\nYou have been added to the group "${groupName}". Please log in and change your default password.\n\nRegards,\nQzPlatform Team`
+                    subject: 'You Have Been Added to a New Group on QzPlatform',
+                    html: `
+                        <p>Dear ${user.name},</p>
+
+                        <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform.</p>
+
+                        <p>Your temporary login credentials are as follows:</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>Password:</strong> ${user.plainPassword}</p>
+
+                        <p>Please log in to your account using these credentials. For security reasons, we strongly recommend that you change your password immediately after logging in.</p>
+
+                        <p>Best regards,<br>The QzPlatform Team</p>
+                    `
                 };
                 sendMail(mailOptions);
             });
+
         } catch (error) {
             console.error("Error Saving Group:", error);
             res.status(500).json({ message: "Failed to create group", error });
