@@ -246,7 +246,7 @@ const updateGroup = asyncHandler(async (req, res) => {
         console.error("Error updating group:", error);
         res.status(500).json({ message: 'Failed to update group', error });
     }
-}]);
+});
 
 module.exports = {
     createGroup,
