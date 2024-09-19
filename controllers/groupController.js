@@ -102,33 +102,7 @@ const createGroup = [
                 };
                 sendMail(mailOptions);
             });
-            
-            // Send email notifications to existing users
-            members.forEach(user => {
-                // Skip newly created users
-                if (!createdUsers.some(newUser => newUser.email === user.email)) {
-                    const mailOptions = {
-                        from: process.env.EMAIL,
-                        to: user.email,
-                        subject: 'Reminder: Log In to Your QzPlatform Group',
-                        html: `
-                            <p>Dear ${user.name},</p>
 
-                            <p>We would like to remind you that you are a member of the group "<strong>${groupName}</strong>" on QzPlatform.</p>
-
-                            <p>Please log in using your existing credentials to access the group resources, courses, and assessments available to you.</p>
-
-                            <p>If you have any questions or need assistance, feel free to contact our support team.</p>
-
-                            <p>Thank you for your continued participation. We look forward to supporting your learning journey.</p>
-
-                            <p>Best regards,<br>
-                            <strong>The QzPlatform Team</strong></p>
-                        `
-                    };
-                    sendMail(mailOptions);
-                }
-            });
         } catch (error) {
             console.error("Error Saving Group:", error);
             res.status(500).json({ message: "Failed to create group", error });
