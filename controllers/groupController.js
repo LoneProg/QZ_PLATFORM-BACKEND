@@ -186,7 +186,6 @@ const updateGroup = asyncHandler(async (req, res) => {
             const hashedPassword = await bcrypt.hash(plainPassword, 10);
             return {
                 name: email.split('@')[0],
-                fullName: email.split('@')[0],
                 email: email,
                 password: hashedPassword,
                 role: 'testTaker',
@@ -230,16 +229,12 @@ const updateGroup = asyncHandler(async (req, res) => {
                     html: `
                         <p>Dear ${user.name},</p>
 
-                        <p>We are pleased to inform you that you have been successfully added to the group "<strong>${group.groupName}</strong>" on QzPlatform.</p>
+                        <p>We are pleased to inform you that you have been added to the group "<strong>${group.groupName}</strong>" on QzPlatform. Here are your login details:</p>
 
-                        <p>As a member of this group, you will have access to various resources, courses, and assessments tailored to enhance your learning experience. Please make sure to log in to your account and familiarize yourself with the available materials.</p>
+                        <p><strong>Email:</strong> ${user.email}<br>
+                        <strong>Password:</strong> ${user.plainPassword}</p>
 
-                        <p>Your login password is: <strong>${user.plainPassword}</strong>. For security purposes, it is highly recommended that you change your password upon your first login.</p>
-
-                        <p>If you have any questions or need further assistance, please do not hesitate to reach out to our support team. We are here to help you make the most of your experience on QzPlatform.</p>
-
-                        <p>Thank you for being a part of our learning community. We look forward to supporting you on your educational journey.</p>
-
+                        <p>Please log in and change your password for security purposes.</p>
                         <p>Best regards,<br>
                         <strong>The QzPlatform Team</strong></p>
                     `
@@ -247,29 +242,15 @@ const updateGroup = asyncHandler(async (req, res) => {
                 sendMail(mailOptions);
             });
         }
-
     } catch (error) {
-        console.error("Error Updating Group:", error);
-        res.status(500).json({ message: "Failed to update group", error });
+        console.error("Error updating group:", error);
+        res.status(500).json({ message: 'Failed to update group', error });
     }
-});
-
-// @Desc    Delete a group
-// @route   DELETE /api/groups/:groupId
-// @access  public
-const deleteGroup = asyncHandler(async (req, res) => {
-    const group = await Group.findByIdAndDelete(req.params.groupId);
-    if (!group) {
-        res.status(404).json({ message: 'Group not found' });
-    } else {
-        res.status(200).json({ message: 'Group deleted successfully' });
-    }
-});
+}]);
 
 module.exports = {
     createGroup,
     getAllGroups,
     getGroupById,
-    updateGroup,
-    deleteGroup
+    updateGroup
 };
