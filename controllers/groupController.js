@@ -41,7 +41,7 @@ const createGroup = [
 
         // Create new users for new emails
         const newUsers = await Promise.all(newEmails.map(async (email) => {
-            const randomPassword = generateRandomPassword();
+            const randomPassword = 'password123';
             const hashedPassword = await bcrypt.hash(randomPassword, 10);
             return {
                 name: email.split('@')[0],
