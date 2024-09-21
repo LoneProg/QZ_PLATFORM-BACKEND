@@ -4,7 +4,7 @@ const { body, validationResult } = require('express-validator');
 const Group = require('../models/groups');
 const User = require('../models/Users');
 const { sendMail } = require('../utils/sendEmail');
-const { generateRandomPassword } = require('../utils/generatePassword');
+const generateRandomPassword = require('../utils/generatePassword');
 
 /// @Desc    Create a Group
 // @route   POST /api/groups/
@@ -42,13 +42,15 @@ const createGroup = [
         // Create new users for new emails
         const newUsers = await Promise.all(newEmails.map(async (email) => {
             const randomPassword = generateRandomPassword();
+            console.log(`random Password = ${randomPassword}`)
             const hashedPassword = await bcrypt.hash(randomPassword, 10);
             return {
                 name: email.split('@')[0],
                 fullName: email.split('@')[0],
                 email: email,
                 password: hashedPassword,
-                role: 'testTaker'
+                role: 'testTaker',
+                randomPassword
             };
         }));
 
