@@ -1,5 +1,5 @@
 const asyncHandler = require('express-async-handler');
-const Waitlist = require('../models/waitlists');
+const Waitlist = require('../models/waitlists');  // Assuming the schema has been updated with the 'notified' field
 const { sendMail } = require('../utils/sendEmail');
 
 //@Desc Add email to waitlist
@@ -16,19 +16,16 @@ const addToWaitlist = async (req, res) => {
         const newEntry = new Waitlist({ email });
         await newEntry.save();
 
-        
-        // You can send a confirmation email here if required
+        // Optional: Send a confirmation email here
         const mailOptions = {
             from: process.env.EMAIL,
             to: email,
             subject: 'Subscription Confirmation',
             html: `
             <p>Dear Esteemed Value Customer, </p>
-            <p> You have been successfully added to the qzplatform waitlist!</p>
-
-            <p>Get ready to explore a seamless enhanced assessment with  fusion of creativity and technology in simplifying the assessment processes </p>
-
-            </p>Watchout as the countdown begins.....!</p>
+            <p>You have been successfully added to the qzplatform waitlist!</p>
+            <p>Get ready to explore a seamless enhanced assessment with a fusion of creativity and technology in simplifying the assessment processes.</p>
+            <p>Watch out as the countdown begins!</p>
             <p>Best regards,<br>
             <strong>The QzPlatform Team</strong></p>`
         };
@@ -42,7 +39,7 @@ const addToWaitlist = async (req, res) => {
     }
 };
 
-//@Desc get all users on the waitlist
+//@Desc Get all users on the waitlist
 //@Route GET /api/waitlist
 //@Access Public
 const getWaitlist = asyncHandler(async (req, res) => {
@@ -56,30 +53,37 @@ const getWaitlist = asyncHandler(async (req, res) => {
 //@Access Public
 const notifyUsers = async () => {
     try {
-        const users = await Waitlist.find({});
+        // Fetch users who haven't been notified yet
+        const users = await Waitlist.find({ notified: false });
+
         const mailOptions = {
             from: process.env.EMAIL,
             subject: 'Product Launch Notification',
             html: `
             <p>Hurray!</p>,
             <p>Your wait is over as the qzplatform goes live!</p>
-            <p> We are pleased to welcome you on board as you begin to explore   our simplified assessment platform, the first of its kind and  solutions  to all your assessments needs </p>
-            <p> A seamless assessment process awaits you.</p>
-            <p> Let's start! <a href="https://qzplatform.com">Click here to get started</a></p>
-
+            <p>We are pleased to welcome you on board as you begin to explore our simplified assessment platform, the first of its kind and a solution to all your assessment needs.</p>
+            <p>A seamless assessment process awaits you.</p>
+            <p>Let's start! <a href="https://qzplatform.com">Click here to get started</a></p>
             <p>Best regards,<br>
             <strong>The QzPlatform Team</strong></p>`
         };
 
-        users.forEach(async (user) => {
+        // Send notifications to users who haven't been notified
+        for (const user of users) {
             try {
-                // Send email to each user
                 await sendMail({ ...mailOptions, to: user.email });
                 console.log(`Notification sent to ${user.email}`);
+
+                // Mark user as notified
+                user.notified = true;
+                await user.save();
             } catch (error) {
                 console.error(`Error sending notification to ${user.email}:`, error);
             }
-        });
+        }
+
+        console.log("All users have been notified.");
     } catch (error) {
         console.error("Error notifying users:", error);
     }

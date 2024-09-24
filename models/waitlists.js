@@ -6,11 +6,14 @@ const waitlistSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  notified: {
+    type: Boolean,
+    default: false
+  },
   subscribedAt: {
     type: Date,
     default: Date.now,
   }
 });
 
-const Waitlist = mongoose.model('Waitlist', waitlistSchema);
-module.exports = Waitlist;
+module.exports = mongoose.model('Waitlist', waitlistSchema);
