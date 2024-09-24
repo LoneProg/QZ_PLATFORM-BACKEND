@@ -89,4 +89,4 @@ const notifyUsers = async () => {
     }
 };
 
-module.exports = { addToWaitlist, getWaitlist, notifyUsers };
+module.exports = { addToWaitlist, getWaitlist };
