@@ -111,7 +111,7 @@ const updateTest = async (req, res) => {
         test.testName = testName || test.testName;
         test.description = description || test.description;
         test.category = category || test.category;
-        test.instruction = instruction || test.instructions;
+        test.instructions = instructions || test.instructions;
         test.updatedAt = Date.now();
 
         const updatedTest = await test.save();
