@@ -2,7 +2,7 @@ const moment = require('moment-timezone');
 const { notifyUsers } = require('../controllers/waitlistController');
 
 // Set the product launch date (adjust to any date you want in "Africa/Lagos" timezone)
-const launchDate = moment.tz("30/09/2024 18:35:00", "DD/MM/YYYY HH:mm:ss", "Africa/Lagos");
+const launchDate = moment.tz("25/09/2024 9:00:00", "DD/MM/YYYY HH:mm:ss", "Africa/Lagos");
 
 // Countdown check function
 const checkCountdown = () => {
