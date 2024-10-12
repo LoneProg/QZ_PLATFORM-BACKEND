@@ -17,7 +17,7 @@ const port = process.env.PORT || 3000;
 
 // Enable CORS for your frontend (localhost:5173) before other middleware
 app.use(cors({
-    origin: 'http://localhost:5173', // Allow requests from this origin
+    origin: ['http://localhost:5173','https://qzplatform.vercel.app'], // Allow requests from this origin
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], // Specify allowed methods
     credentials: true, // Enable this if requests involve cookies or sessions
 }));
