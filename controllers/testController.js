@@ -101,7 +101,7 @@ const getTestById = async (req, res) => {
 //@Access Public
 const updateTest = async (req, res) => {
     try {
-        const { testName, description, category, instructions} = req.body;
+        const { testName, description, category, instruction} = req.body;
 
         const test = await Test.findById(req.params.testId);
         if (!test) {
