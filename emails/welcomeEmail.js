@@ -2,14 +2,13 @@
 
 const banner = () => `
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="https://your-banner-image-url.com/banner.jpg" alt="QzPlatform" style="width: 100%; max-width: 600px;">
+        <img src="../uploads/mailbanner.png" alt="QzPlatform" style="width: 100%; max-width: 600px;">
     </div>
 `;
 
 const footer = () => `
     <div style="text-align: center; margin-top: 20px;">
         <p style="color: #999; font-size: 12px;">QzPlatform &copy; 2024 | All rights reserved</p>
-        <p style="color: #999; font-size: 12px;">1234 Street Name, City, State, Country</p>
     </div>
 `;
 
