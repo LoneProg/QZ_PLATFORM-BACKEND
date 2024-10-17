@@ -113,7 +113,7 @@ const forgotPassword = async (req, res) => {
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         //const resetPasswordUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
-        const resetPasswordUrl = `https://qzplatform.com/reset-password/${resetToken}`;
+        const resetPasswordUrl = `https://qzplatform.vercel.app/reset-password/${resetToken}`;
         console.log("Generated Reset URL:", resetPasswordUrl);
 
 
