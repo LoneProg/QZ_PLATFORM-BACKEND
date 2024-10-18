@@ -2,7 +2,7 @@
 
 const banner = () => `
     <div style="text-align: center; margin-bottom: 20px;">
-        <img src="mailbanner.png" alt="QzPlatform" style="width: 100%; max-width: 600px;">
+        <img src="./mailbanner.png" alt="QzPlatform" style="width: 100%; max-width: 600px;">
     </div>
 `;
 
