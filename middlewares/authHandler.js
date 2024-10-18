@@ -1,14 +1,14 @@
-// JWT Token Verification Middleware
 const jwt = require('jsonwebtoken');
 const User = require('../models/Users');
 
-// Protect middleware (verifies JWT and populates req.user)
+// Protect middleware to verify if user is logged in
 const protect = async (req, res, next) => {
     let token;
 
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
+
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = await User.findById(decoded.id).select('-password');
 
@@ -19,27 +19,23 @@ const protect = async (req, res, next) => {
             next();
         } catch (error) {
             if (error.name === 'TokenExpiredError') {
-                return res.status(401).json({ message: 'Token expired, please log in again' });
+                return res.status(401).json({ message: 'Token expired' });
             }
-            return res.status(401).json({ message: 'Not authorized, invalid token' });
+            return res.status(401).json({ message: 'Not authorized, token failed' });
         }
-    } else {
-        return res.status(401).json({ message: 'Not authorized, no token provided' });
+    }
+
+    if (!token) {
+        return res.status(401).json({ message: 'Not authorized, no token' });
     }
 };
 
-// Role-based access middleware for Test Creators
+// Role-based middleware for test creators only
 const testCreatorOnly = (req, res, next) => {
-    if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized' });
-    }
-
     if (req.user.role !== 'testCreator') {
         return res.status(403).json({ message: 'Access restricted to Test Creators only' });
     }
-
     next();
 };
 
-// Apply the middleware to a route
-router.route('/').get(protect, testCreatorOnly, getUsers);
+module.exports = { protect, testCreatorOnly };
