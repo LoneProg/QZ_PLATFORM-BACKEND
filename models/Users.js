@@ -20,6 +20,11 @@ const UserSchema = new mongoose.Schema({
     default: 'testTaker',
   },
   isActive: {type: Boolean, default: true},
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // References the testCreator
+    required: true,
+  },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
 }, { timestamps: true });

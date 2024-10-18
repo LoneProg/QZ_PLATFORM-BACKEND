@@ -7,7 +7,6 @@ const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 
-
 //@desc Create User
 //@route POST /api/users
 //@access public
@@ -51,30 +50,21 @@ const createUser = asyncHandler(async (req, res) => {
         });
 
         // Send email notification with generated password
-       const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: 'Welcome to QzPlatform!',
-    html: `
-        <p>Dear ${name},</p>
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Welcome to QzPlatform!',
+            html: `
+                <p>Dear ${name},</p>
+                <p>Welcome to <strong>QzPlatform</strong>!</p>
+                <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
+                <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
+                <p>If you need assistance, please contact our support team.</p>
+                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
+            `
+        };
 
-        <p>Welcome to <strong>QzPlatform</strong>!</p>
-
-        <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
-
-        <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-
-        <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
-
-        <p>We are excited to have you on board and look forward to helping you achieve your assessment goals.</p>
-
-        <p>Best regards,<br>
-        <strong>The QzPlatform Team</strong></p>
-    `
-};
-
-
-        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
+        await sendMail(mailOptions); // Send the email
 
     } else {
         res.status(400);
@@ -147,9 +137,9 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
                         html: `
                             <p>Dear ${name},</p>
                             <p>Welcome to <strong>QzPlatform</strong>!</p>
-                            <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
+                            <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
                             <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-                            <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
+                            <p>If you need assistance, please contact our support team.</p>
                             <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
                         `
                     };
@@ -180,8 +170,6 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         });
 });
 
-
-
 //@desc Get all Users
 //@route GET /api/users
 //@access public
@@ -190,7 +178,7 @@ const getUsers = asyncHandler(async (req, res) => {
     res.json(users);
 });
 
-//@desc Get a User
+//@desc Get a User by ID
 //@route GET /api/users/:userId
 //@access public
 const getUser = asyncHandler(async (req, res) => {
@@ -216,6 +204,7 @@ const updateUser = asyncHandler(async (req, res) => {
         user.role = req.body.role || user.role;
 
         const updatedUser = await user.save();
+
         res.json({
             message: "User Updated Successfully",
             _id: updatedUser._id,
@@ -225,29 +214,19 @@ const updateUser = asyncHandler(async (req, res) => {
         });
 
         // Send email notification
-       const mailOptions = {
-    from: process.env.EMAIL,
-    to: updatedUser.email,
-    subject: 'Your QzPlatform Account Has Been Updated',
-    html: `
-        <p>Dear ${updatedUser.name},</p>
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: updatedUser.email,
+            subject: 'Your QzPlatform Account Has Been Updated',
+            html: `
+                <p>Dear ${updatedUser.name},</p>
+                <p>Your QzPlatform account has been successfully updated.</p>
+                <p>If you did not request this change, please contact support immediately.</p>
+                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
+            `
+        };
 
-        <p>We wanted to inform you that your QzPlatform account has been <strong>successfully updated</strong>.</p>
-
-        <p>If you did not request this change or believe this update was made in error, please contact our support team immediately.</p>
-
-        <p>If you have any questions or need further assistance, feel free to reach out. We’re here to help!</p>
-
-        <p>Thank you for being a valued member of our community.</p>
-
-        <p>Best regards,<br>
-        <strong>The QzPlatform Team</strong></p>
-    `
-};
-
-
-        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
-
+        await sendMail(mailOptions); // Send the email
     } else {
         res.status(404);
         throw new Error(`User not found with ID: ${req.params.userId}`);
