@@ -23,7 +23,7 @@ const UserSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // References the testCreator
-    required: true,
+    required: false,
   },
   resetPasswordToken: String,
   resetPasswordExpires: Date,
