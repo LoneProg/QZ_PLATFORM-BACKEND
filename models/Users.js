@@ -1,27 +1,29 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: true
   },
   email: {
     type: String,
     required: true,
-    unique: true,
+    unique: true
   },
   password: {
     type: String,
-    required: true,
+    required: true
   },
   role: {
     type: String,
     enum: ['admin', 'testCreator', 'testTaker'],
-    default: 'testTaker',
+    default: 'testTaker'
   },
-  isActive: {type: Boolean, default: true},
-  resetPasswordToken: String,
-  resetPasswordExpires: Date,
+  creatorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Reference to the Test Creator
+  }
 }, { timestamps: true });
 
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', userSchema);
+module.exports = User;

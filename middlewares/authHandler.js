@@ -1,39 +1,30 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/Users');
 
-const protect = async (req, res, next) => {
-    let token;
+// Token verification middleware
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
-    // Check for the token in the Authorization header
-    if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        try {
-            // Extract token from the header
-            token = req.headers.authorization.split(' ')[1];
+  if (token == null) return res.status(401).json({ message: 'Token is required' });
 
-            // Verify token
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-            // Find the user by ID, excluding password from the result
-            req.user = await User.findById(decoded.id).select('-password');
-
-            if (!req.user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-
-            // Proceed to the next middleware
-            next();
-        } catch (error) {
-            if (error.name === 'TokenExpiredError') {
-                return res.status(401).json({ message: 'Token expired' });
-            }
-            return res.status(401).json({ message: 'Not authorized, token failed' });
-        }
-    }
-
-    // No token provided
-    if (!token) {
-        return res.status(401).json({ message: 'Not authorized, no token' });
-    }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ message: 'Invalid token' });
+    req.user = user;
+    next();
+  });
 };
 
-module.exports = protect;
+// Role-based access control
+const authorizeRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'You do not have permission to perform this action' });
+    }
+    next();
+  };
+};
+
+module.exports = {
+  authenticateToken,
+  authorizeRoles
+};

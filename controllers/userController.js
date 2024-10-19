@@ -7,12 +7,17 @@ const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
 
-
-//@desc Create User
-//@route POST /api/users
-//@access public
+// @desc Create User
+// @route POST /api/users
+// @access protected (Test Creator Only)
 const createUser = asyncHandler(async (req, res) => {
     const { name, email, role } = req.body;
+
+    // Check if the logged-in user is a Test Creator
+    if (req.user.role !== 'testCreator') {
+        res.status(403);
+        throw new Error("Only Test Creators can create users");
+    }
 
     // Validation
     if (!name || !email) {
@@ -33,12 +38,13 @@ const createUser = asyncHandler(async (req, res) => {
     // Hash the generated password before saving
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-    // Create user
+    // Create user with the logged-in Test Creator as the 'createdBy'
     const user = await User.create({
         name,
         email,
         password: hashedPassword, // Save hashed password
-        role
+        role,
+        createdBy: req.user._id // Assign Test Creator's ID
     });
 
     if (user) {
@@ -51,48 +57,41 @@ const createUser = asyncHandler(async (req, res) => {
         });
 
         // Send email notification with generated password
-       const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: 'Welcome to QzPlatform!',
-    html: `
-        <p>Dear ${name},</p>
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: email,
+            subject: 'Welcome to QzPlatform!',
+            html: `
+                <p>Dear ${name},</p>
+                <p>Welcome to <strong>QzPlatform</strong>!</p>
+                <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
+                <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
+                <p>If you need assistance, please contact our support team.</p>
+                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
+            `
+        };
 
-        <p>Welcome to <strong>QzPlatform</strong>!</p>
-
-        <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
-
-        <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-
-        <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
-
-        <p>We are excited to have you on board and look forward to helping you achieve your assessment goals.</p>
-
-        <p>Best regards,<br>
-        <strong>The QzPlatform Team</strong></p>
-    `
-};
-
-
-        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
-
+        await sendMail(mailOptions); // Send the email
     } else {
         res.status(400);
         throw new Error("Invalid user data");
     }
 });
 
-//@desc Create Users from CSV
-//@route POST /api/users/upload
-//@access public
+// @desc Create Users from CSV
+// @route POST /api/users/upload
+// @access protected (Test Creator Only)
 const createUsersFromCSV = asyncHandler(async (req, res) => {
-    // Check if a file is uploaded
+    if (req.user.role !== 'testCreator') {
+        res.status(403);
+        throw new Error("Only Test Creators can upload users");
+    }
+
     if (!req.file) {
         res.status(400);
         throw new Error("Please upload a CSV file");
     }
 
-    // Validate if the uploaded file is of CSV type
     if (req.file.mimetype !== 'text/csv') {
         res.status(400);
         throw new Error("Invalid file format. Please upload a CSV file.");
@@ -111,35 +110,31 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
             for (let row of results) {
                 const { name, email, role } = row;
 
-                // Validation: Check if required fields are present
                 if (!name || !email) {
                     errors.push({ email, message: "Name and email are mandatory" });
                     continue;
                 }
 
-                // Check if user already exists
                 const userExists = await User.findOne({ email });
                 if (userExists) {
                     errors.push({ email, message: "User already exists" });
                     continue;
                 }
 
-                // Generate a random password and hash it
                 const randomPassword = generateRandomPassword();
                 const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-                // Create the user
                 try {
                     const user = await User.create({
                         name,
                         email,
                         password: hashedPassword,
-                        role
+                        role,
+                        createdBy: req.user._id
                     });
 
                     createdUsers.push(user);
 
-                    // Send email notification with the generated password
                     const mailOptions = {
                         from: process.env.EMAIL,
                         to: email,
@@ -147,9 +142,9 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
                         html: `
                             <p>Dear ${name},</p>
                             <p>Welcome to <strong>QzPlatform</strong>!</p>
-                            <p>Your account has been successfully created. To get started, please log in using the temporary password provided below. For your security, we recommend that you change this password immediately after your first login.</p>
+                            <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
                             <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-                            <p>If you have any questions or need assistance, please do not hesitate to contact our support team.</p>
+                            <p>If you need assistance, please contact our support team.</p>
                             <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
                         `
                     };
@@ -160,14 +155,12 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
                 }
             }
 
-            // Clean up: Delete the uploaded CSV file after processing
             fs.unlink(filePath, (err) => {
                 if (err) {
                     console.error('Error deleting file:', err);
                 }
             });
 
-            // Respond with the result
             res.status(201).json({
                 message: "Users created successfully from CSV",
                 createdUsers,
@@ -180,19 +173,21 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         });
 });
 
-
-
-//@desc Get all Users
-//@route GET /api/users
-//@access public
+// @desc Get all Users created by the current Test Creator
+// @route GET /api/users
+// @access protected (Test Creators Only)
 const getUsers = asyncHandler(async (req, res) => {
-    const users = await User.find({});
+    if (req.user.role !== 'testCreator') {
+        return res.status(403).json({ message: 'Access restricted to Test Creators only' });
+    }
+
+    const users = await User.find({ createdBy: req.user._id });
     res.json(users);
 });
 
-//@desc Get a User
-//@route GET /api/users/:userId
-//@access public
+// @desc Get a User by ID
+// @route GET /api/users/:userId
+// @access public
 const getUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.userId);
 
@@ -204,9 +199,9 @@ const getUser = asyncHandler(async (req, res) => {
     }
 });
 
-//@desc Update User
-//@route PUT /api/users/:userId
-//@access public
+// @desc Update User
+// @route PUT /api/users/:userId
+// @access public
 const updateUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.userId);
 
@@ -216,6 +211,7 @@ const updateUser = asyncHandler(async (req, res) => {
         user.role = req.body.role || user.role;
 
         const updatedUser = await user.save();
+
         res.json({
             message: "User Updated Successfully",
             _id: updatedUser._id,
@@ -224,39 +220,28 @@ const updateUser = asyncHandler(async (req, res) => {
             role: updatedUser.role
         });
 
-        // Send email notification
-       const mailOptions = {
-    from: process.env.EMAIL,
-    to: updatedUser.email,
-    subject: 'Your QzPlatform Account Has Been Updated',
-    html: `
-        <p>Dear ${updatedUser.name},</p>
+        const mailOptions = {
+            from: process.env.EMAIL,
+            to: updatedUser.email,
+            subject: 'Your QzPlatform Account Has Been Updated',
+            html: `
+                <p>Dear ${updatedUser.name},</p>
+                <p>Your QzPlatform account has been successfully updated.</p>
+                <p>If you did not request this change, please contact support immediately.</p>
+                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
+            `
+        };
 
-        <p>We wanted to inform you that your QzPlatform account has been <strong>successfully updated</strong>.</p>
-
-        <p>If you did not request this change or believe this update was made in error, please contact our support team immediately.</p>
-
-        <p>If you have any questions or need further assistance, feel free to reach out. We’re here to help!</p>
-
-        <p>Thank you for being a valued member of our community.</p>
-
-        <p>Best regards,<br>
-        <strong>The QzPlatform Team</strong></p>
-    `
-};
-
-
-        await sendMail(mailOptions);  // Await here if sendMail is asynchronous
-
+        await sendMail(mailOptions);
     } else {
         res.status(404);
         throw new Error(`User not found with ID: ${req.params.userId}`);
     }
 });
 
-//@desc Delete User
-//@route DELETE /api/users/:userId
-//@access public
+// @desc Delete User
+// @route DELETE /api/users/:userId
+// @access public
 const deleteUser = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.userId);
 
