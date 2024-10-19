@@ -44,7 +44,7 @@ const createUser = asyncHandler(async (req, res) => {
         email,
         password: hashedPassword, // Save hashed password
         role,
-        createdBy: req.user._id // Assign Test Creator's ID
+        createdBy: req.user._id
     });
 
     if (user) {
