@@ -7,13 +7,13 @@ const express = require('express');
 //@Access Public
 const createTest = async (req, res) => {
     try {
-        const { testName, description, category, createdBy, instructions} = req.body;
+        const { testName, description, category, createdBy, instruction} = req.body;
         const newTest = new Test({
             testName,
             description,
             category,
             createdBy,
-            instructions,
+            instruction,
         });
 
         const savedTest = await newTest.save();
