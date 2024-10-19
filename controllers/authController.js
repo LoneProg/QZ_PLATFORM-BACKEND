@@ -27,7 +27,8 @@ const register = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role
+            role,
+            createdBy: req.user._id
         });
 
         const firstName = user.name.split(' ')[0];
