@@ -9,9 +9,15 @@ const path = require('path');
 
 //@desc Create User
 //@route POST /api/users
-//@access public
+//@access protected (Test Creator Only)
 const createUser = asyncHandler(async (req, res) => {
     const { name, email, role } = req.body;
+
+    // Check if the logged-in user is a Test Creator
+    if (req.user.role !== 'testCreator') {
+        res.status(403);
+        throw new Error("Only Test Creators can create users");
+    }
 
     // Validation
     if (!name || !email) {
@@ -32,12 +38,13 @@ const createUser = asyncHandler(async (req, res) => {
     // Hash the generated password before saving
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-    // Create user
+    // Create user with the logged-in Test Creator as the 'createdBy'
     const user = await User.create({
         name,
         email,
         password: hashedPassword, // Save hashed password
-        role
+        role,
+        createdBy: req.user._id // Assign Test Creator's ID
     });
 
     if (user) {
@@ -65,17 +72,21 @@ const createUser = asyncHandler(async (req, res) => {
         };
 
         await sendMail(mailOptions); // Send the email
-
     } else {
         res.status(400);
         throw new Error("Invalid user data");
     }
 });
-
 //@desc Create Users from CSV
 //@route POST /api/users/upload
-//@access public
+//@access protected (Test Creator Only)
 const createUsersFromCSV = asyncHandler(async (req, res) => {
+    // Check if the logged-in user is a Test Creator
+    if (req.user.role !== 'testCreator') {
+        res.status(403);
+        throw new Error("Only Test Creators can upload users");
+    }
+
     // Check if a file is uploaded
     if (!req.file) {
         res.status(400);
@@ -118,13 +129,14 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
                 const randomPassword = generateRandomPassword();
                 const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-                // Create the user
+                // Create the user with the logged-in Test Creator as the 'createdBy'
                 try {
                     const user = await User.create({
                         name,
                         email,
                         password: hashedPassword,
-                        role
+                        role,
+                        createdBy: req.user._id // Assign Test Creator's ID
                     });
 
                     createdUsers.push(user);
@@ -170,9 +182,6 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         });
 });
 
-//@desc Get all Users
-//@route GET /api/users
-//@access public
 //@desc Get all Users created by the current Test Creator
 //@route GET /api/users
 //@access protected (Test Creators Only)
