@@ -173,15 +173,21 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         });
 });
 
-// @desc Get all Users created by the current Test Creator
+// @desc Get all testTaker Users created by the current Test Creator
 // @route GET /api/users
 // @access protected (Test Creators Only)
 const getUsers = asyncHandler(async (req, res) => {
+    // Check if the logged-in user is a Test Creator
     if (req.user.role !== 'testCreator') {
         return res.status(403).json({ message: 'Access restricted to Test Creators only' });
     }
 
-    const users = await User.find({ createdBy: req.user._id });
+    // Retrieve only 'testTaker' users created by the logged-in Test Creator
+    const users = await User.find({ 
+        createdBy: req.user._id, 
+        role: 'testTaker' // Ensure only testTakers are returned
+    });
+
     res.json(users);
 });
 
