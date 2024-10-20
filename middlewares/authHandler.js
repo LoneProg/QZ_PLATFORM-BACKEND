@@ -1,17 +1,34 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/Users'); // Import the User model
 
 // Token verification middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (token == null) return res.status(401).json({ message: 'Token is required' });
+  if (token == null) {
+    return res.status(401).json({ message: 'Token is required' });
+  }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
+  try {
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Fetch the full user details from the database using the ID in the token payload
+    const user = await User.findById(decoded.id).select('-password'); // Exclude password
+
+    if (!user) {
+      return res.status(401).json({ message: 'User not found' });
+    }
+
+    // Attach the user object to the request
     req.user = user;
+
+    // Proceed to the next middleware
     next();
-  });
+  } catch (err) {
+    return res.status(403).json({ message: 'Invalid token' });
+  }
 };
 
 // Role-based access control
@@ -26,5 +43,5 @@ const authorizeRoles = (...roles) => {
 
 module.exports = {
   authenticateToken,
-  authorizeRoles
+  authorizeRoles,
 };

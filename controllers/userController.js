@@ -46,6 +46,7 @@ const createUser = asyncHandler(async (req, res) => {
         role,
         createdBy: req.user._id
     });
+    console.log('CreatedBy:', req.user._id);
 
     if (user) {
         res.status(201).json({
