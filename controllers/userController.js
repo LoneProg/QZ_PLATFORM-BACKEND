@@ -185,11 +185,15 @@ const getUsers = asyncHandler(async (req, res) => {
 
     // Retrieve only 'testTaker' users created by the logged-in Test Creator
     const users = await User.find({ 
-        createdBy: req.user._id, 
+        createdBy: req.user._id,  // Ensure the 'createdBy' field matches the logged-in Test Creator's _id
         role: 'testTaker' // Ensure only testTakers are returned
     });
 
-    res.json(users);
+    if (users && users.length > 0) {
+        res.status(200).json(users);
+    } else {
+        res.status(404).json({ message: "No test takers found for this Test Creator" });
+    }
 });
 
 // @desc Get a User by ID
