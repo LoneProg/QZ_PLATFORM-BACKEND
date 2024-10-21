@@ -63,14 +63,7 @@ const createUser = asyncHandler(async (req, res) => {
             from: process.env.EMAIL,
             to: email,
             subject: 'Welcome to QzPlatform!',
-            html: `
-                <p>Dear ${name},</p>
-                <p>Welcome to <strong>QzPlatform</strong>!</p>
-                <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
-                <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-                <p>If you need assistance, please contact our support team.</p>
-                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
-            `
+            html: userCreationMailTemplate(name, randomPassword)
         };
 
         await sendMail(mailOptions); // Send the email
@@ -141,14 +134,7 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
                         from: process.env.EMAIL,
                         to: email,
                         subject: 'Welcome to QzPlatform!',
-                        html: `
-                            <p>Dear ${name},</p>
-                            <p>Welcome to <strong>QzPlatform</strong>!</p>
-                            <p>Your account has been successfully created. Please log in using the temporary password below and change it immediately after your first login:</p>
-                            <p><strong>Temporary Password:</strong> <code>${randomPassword}</code></p>
-                            <p>If you need assistance, please contact our support team.</p>
-                            <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
-                        `
+                        html: csvUserCreationMailTemplate(name, randomPassword)
                     };
 
                     await sendMail(mailOptions);
@@ -236,12 +222,7 @@ const updateUser = asyncHandler(async (req, res) => {
             from: process.env.EMAIL,
             to: updatedUser.email,
             subject: 'Your QzPlatform Account Has Been Updated',
-            html: `
-                <p>Dear ${updatedUser.name},</p>
-                <p>Your QzPlatform account has been successfully updated.</p>
-                <p>If you did not request this change, please contact support immediately.</p>
-                <p>Best regards,<br><strong>The QzPlatform Team</strong></p>
-            `
+            html: userUpdateMailTemplate(updatedUser.name)
         };
 
         await sendMail(mailOptions);
