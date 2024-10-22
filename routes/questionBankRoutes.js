@@ -9,8 +9,8 @@ const {
     linkQuestionToTest,
     unlinkQuestionFromTest,
     searchQuestions
-} = require('../controllers/questionController');
-const { authenticateToken, authorizeRoles } = require('../middleware/authHandler');
+} = require('../controllers/questionBankController');
+const { authenticateToken, authorizeRoles } = require('../middlewares/authHandler');
 
 // @Route GET /api/questions
 // @Desc List all questions (for logged-in test creators only)

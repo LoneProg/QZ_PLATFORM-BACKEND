@@ -55,9 +55,10 @@ const addNewQuestion = asyncHandler(async (req, res, next) => {
             points,
             category,
             randomizeAnswers,
-            questionAnswers
+            questionAnswers,
             createdBy: req.user._id // Assuming req.user contains the logged-in user details
         });
+        console.log('createdBy:', req.user._id); // Log the creator ID for debugging
 
         await newQuestion.save();
         res.status(201).json(newQuestion);
@@ -72,19 +73,30 @@ const addNewQuestion = asyncHandler(async (req, res, next) => {
 const getQuestionById = asyncHandler(async (req, res) => {
     const { id } = req.params;
 
-    const question = await Question.findById(id).populate('linkedTests', 'testName');
+    try {
+        console.log('Requesting question with ID:', id); // Debug line
 
-    if (!question) {
-        return res.status(404).json({ message: 'Question not found' });
+        const question = await Question.findById(id).populate('linkedTests', 'testName');
+
+        if (!question) {
+            return res.status(404).json({ message: 'Question not found' });
+        }
+
+        console.log('Question found:', question); // Debug line
+
+        // Check if the current user is the creator of the question
+        if (question.createdBy.toString() !== req.user._id.toString()) {
+            console.log('Access denied for user:', req.user._id); // Debug line
+            return res.status(403).json({ message: 'Access denied. You are not the creator of this question.' });
+        }
+
+        res.json(question);
+    } catch (error) {
+        console.error('Error retrieving question:', error);
+        return res.status(500).json({ message: 'Server error' });
     }
-
-    // Ensure only the creator can access this question
-    if (question.creatorId.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: 'Access denied. You are not the creator of this question.' });
-    }
-
-    res.json(question);
 });
+
 
 
 // @Desc Update a question in the Question Bank
@@ -101,7 +113,7 @@ const updateQuestion = asyncHandler(async (req, res, next) => {
         }
 
         // Ensure only the creator can update this question
-        if (question.creatorId.toString() !== req.user._id.toString()) {
+        if (question.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Access denied. You are not the creator of this question.' });
         }
 
@@ -139,7 +151,7 @@ const deleteQuestion = asyncHandler(async (req, res) => {
         }
 
         // Ensure only the creator can delete this question
-        if (question.creatorId.toString() !== req.user._id.toString()) {
+        if (question.createdBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Access denied. You are not the creator of this question.' });
         }
 
@@ -149,12 +161,20 @@ const deleteQuestion = asyncHandler(async (req, res) => {
             { $pull: { questions: id } }
         );
 
-        await question.remove();
+        // Log for better debugging: Check if the update query executed successfully
+        console.log('Removed question from tests successfully');
+
+        // Remove the question from the database
+        await question.deleteOne();
+        
         res.json({ message: 'Question deleted successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error deleting question' });
+        // Log the full error for debugging
+        console.error('Error deleting question:', error);
+        res.status(500).json({ message: 'Error deleting question', error: error.message });
     }
 });
+
 
 
 // @Desc Link a question from the Question Bank to a test
