@@ -70,7 +70,8 @@ const createGroup = [
         const group = new Group({
             groupName,
             groupDescription,
-            members: members.map(user => user._id)
+            members: members.map(user => user._id),
+            createdBy: req.user._id
         });
 
         try {
@@ -83,23 +84,7 @@ const createGroup = [
                     from: process.env.EMAIL,
                     to: user.email,
                     subject: 'You Have Been Added to a New Course Group on QzPlatform',
-                    html: `
-                    <p>Dear ${user.name},</p>
-
-                    <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
-
-                    <p>Your temporary login credentials are as follows:</p>
-                    <p><strong>Email:</strong> ${user.email}</p>
-                    <p><strong>Password:</strong> ${randomPassword}</p>
-
-                    <p>Please log in to your account using these credentials. For security reasons, we strongly recommend that you change your password immediately after logging in.</p>
-
-                    <p>If you have any questions or require assistance, please do not hesitate to contact our support team.</p>
-
-                    <p>Thank you for being a part of our learning community. We wish you the best in your educational journey.</p>
-
-                    <p>Best regards,<br>
-                    <strong>The QzPlatform Team</strong></p>`
+                    html: createGroupTemplate(user.name, groupName, user.email, user.randomPassword)
                 };
                 sendMail(mailOptions);
             });
@@ -212,23 +197,7 @@ const updateGroup = asyncHandler(async (req, res) => {
                     from: process.env.EMAIL,
                     to: user.email,
                     subject: 'You Have Been Added to a New Course Group on QzPlatform',
-                    html: `
-                    <p>Dear ${user.name},</p>
-
-                    <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
-
-                    <p>Your temporary login credentials are as follows:</p>
-                    <p><strong>Email:</strong> ${user.email}</p>
-                    <p><strong>Password:</strong> ${randomPassword}</p>
-
-                    <p>Please log in to your account using these credentials. For security reasons, we strongly recommend that you change your password immediately after logging in.</p>
-
-                    <p>If you have any questions or require assistance, please do not hesitate to contact our support team.</p>
-
-                    <p>Thank you for being a part of our learning community. We wish you the best in your educational journey.</p>
-
-                    <p>Best regards,<br>
-                    <strong>The QzPlatform Team</strong></p>`
+                    html: updateGroupTemplate(user.name, groupName, user.email, user.randomPassword)
                 };
                 sendMail(mailOptions);
             });
