@@ -8,92 +8,102 @@ const generateRandomPassword = require('../utils/generatePassword');
 
 /// @Desc    Create a Group
 // @route   POST /api/groups/
-// @access  public
+// @access  Private (Requires Auth)
+
 const createGroup = [
-    // Input validation
-    body('groupName').not().isEmpty().withMessage('Group name is required'),
-    body('memberEmails').isArray().withMessage('Member emails should be an array'),
+  body('groupName').not().isEmpty().withMessage('Group name is required'),
+  body('memberEmails').isArray().withMessage('Member emails should be an array'),
 
-    asyncHandler(async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-        const { groupName, groupDescription, memberEmails } = req.body;
+    const { groupName, groupDescription, memberEmails } = req.body;
 
-        // Check if the group already exists
-        const existingGroup = await Group.findOne({ groupName });
-        if (existingGroup) {
-            return res.status(400).json({ message: 'Group with this name already exists' });
-        }
+    // Check if group already exists
+    const existingGroup = await Group.findOne({ groupName });
+    if (existingGroup) {
+      return res.status(400).json({ message: 'Group with this name already exists' });
+    }
 
-        // Fetch existing test takers
-        let members = await User.find({ email: { $in: memberEmails }, role: 'testTaker' });
+    // Fetch existing users
+    const allUsers = await User.find({ email: { $in: memberEmails } });
+    const existingEmails = allUsers.map(user => user.email);
+    const members = allUsers.filter(user => user.role === 'testTaker');
 
-        // Find all users by provided emails
-        let allUsers = await User.find({ email: { $in: memberEmails } });
+    // Identify emails not yet in the system
+    const newEmails = memberEmails.filter(email => !existingEmails.includes(email));
 
-        const existingEmails = allUsers.map(user => user.email);
+    // Create new users
+    const newUsersData = await Promise.all(newEmails.map(async (email) => {
+      const randomPassword = generateRandomPassword();
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+      return {
+        name: email.split('@')[0],
+        fullName: email.split('@')[0],
+        email,
+        password: hashedPassword,
+        role: 'testTaker',
+        randomPassword
+      };
+    }));
 
-        // Identify new emails that are not yet in the system
-        const newEmails = memberEmails.filter(email => !existingEmails.includes(email));
+    let createdUsers = [];
+    if (newUsersData.length > 0) {
+      try {
+        createdUsers = await User.insertMany(newUsersData);
+      } catch (error) {
+        console.error("Error Creating New Users:", error);
+        return res.status(500).json({ message: "Failed to create new users", error });
+      }
+    }
 
-        // Create new users for new emails
-        const newUsers = await Promise.all(newEmails.map(async (email) => {
-            const randomPassword = generateRandomPassword();
-            const hashedPassword = await bcrypt.hash(randomPassword, 10);
-            return {
-                name: email.split('@')[0],
-                fullName: email.split('@')[0],
-                email: email,
-                password: hashedPassword,
-                role: 'testTaker',
-                randomPassword
-            };
-        }));
+    const allMembers = [...members, ...createdUsers];
 
-        let createdUsers = [];
-        if (newUsers.length > 0) {
-            try {
-                createdUsers = await User.insertMany(newUsers);
-            } catch (error) {
-                console.error("Error Creating New Users:", error);
-                return res.status(500).json({ message: "Failed to create new users", error });
-            }
-        }
+    // Create group
+    const group = new Group({
+      groupName,
+      groupDescription,
+      members: allMembers.map(user => user._id),
+      createdBy: req.user ? req.user._id : null
+    });
 
-        // Combine existing and new members
-        members = [...members, ...createdUsers];
+    try {
+      await group.save();
 
-        // Create the group
-        const group = new Group({
-            groupName,
-            groupDescription,
-            members: members.map(user => user._id),
-            createdBy: req.user._id
-        });
+      // Send emails to new users
+      await Promise.all(createdUsers.map(async (user) => {
+        const mailOptions = {
+          from: process.env.EMAIL,
+          to: user.email,
+          subject: 'You Have Been Added to a New Course Group on QzPlatform',
+          html: createGroupTemplate(user.name, groupName, user.email, user.randomPassword)
+        };
 
         try {
-            await group.save();
-            res.status(201).json({ message: 'Group created successfully', group, newMembers: createdUsers });
-
-            // Send email notifications to new users
-            createdUsers.forEach(user => {
-                const mailOptions = {
-                    from: process.env.EMAIL,
-                    to: user.email,
-                    subject: 'You Have Been Added to a New Course Group on QzPlatform',
-                    html: createGroupTemplate(user.name, groupName, user.email, user.randomPassword)
-                };
-                sendMail(mailOptions);
-            });
-
-        } catch (error) {
-            console.error("Error Saving Group:", error);
-            res.status(500).json({ message: "Failed to create group", error });
+          await sendMail(mailOptions);
+          console.log(`Email sent to ${user.email}`);
+        } catch (err) {
+          console.error(`Failed to send email to ${user.email}:`, err);
         }
-    })
+      }));
+
+      res.status(201).json({
+        message: 'Group created successfully',
+        group,
+        newMembers: createdUsers.map(user => ({
+          email: user.email,
+          password: user.randomPassword
+        }))
+      });
+
+    } catch (error) {
+      console.error("Error Saving Group:", error);
+      res.status(500).json({ message: "Failed to create group", error });
+    }
+  })
 ];
 
 // @Desc    Get all Groups
