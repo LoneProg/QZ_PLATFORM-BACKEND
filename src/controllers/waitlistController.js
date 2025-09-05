@@ -1,6 +1,6 @@
-const asyncHandler = require("express-async-handler");
-const Waitlist = require("../models/waitlists"); // Assuming the schema has been updated with the 'notified' field
-const { sendMail } = require("../utils/sendEmail");
+const asyncHandler = require('express-async-handler');
+const Waitlist = require('../models/waitlists'); // Assuming the schema has been updated with the 'notified' field
+const { sendMail } = require('../utils/sendEmail');
 
 //@Desc Add email to waitlist
 //@Route POST /api/waitlist
@@ -12,7 +12,7 @@ const addToWaitlist = async (req, res) => {
     if (existingUser) {
       return res
         .status(400)
-        .json({ message: "Email already subscribed to the waitlist." });
+        .json({ message: 'Email already subscribed to the waitlist.' });
     }
 
     const newEntry = new Waitlist({ email });
@@ -22,7 +22,7 @@ const addToWaitlist = async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
-      subject: "Subscription Confirmation",
+      subject: 'Subscription Confirmation',
       html: `
             <p>Dear Esteemed Value Customer, </p>
             <p>You have been successfully added to the qzplatform waitlist!</p>
@@ -34,10 +34,10 @@ const addToWaitlist = async (req, res) => {
 
     await sendMail(mailOptions);
 
-    res.status(200).json({ message: "Email added to the waitlist." });
+    res.status(200).json({ message: 'Email added to the waitlist.' });
   } catch (error) {
-    console.error("Error adding email to waitlist:", error);
-    res.status(500).json({ message: "Server error." });
+    console.error('Error adding email to waitlist:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 
@@ -60,7 +60,7 @@ const notifyUsers = async () => {
 
     const mailOptions = {
       from: process.env.EMAIL,
-      subject: "Product Launch Notification",
+      subject: 'Product Launch Notification',
       html: `
             <p>Hurray!</p>,
             <p>Your wait is over as the qzplatform goes live!</p>
@@ -85,9 +85,9 @@ const notifyUsers = async () => {
       }
     }
 
-    console.log("All users have been notified.");
+    console.log('All users have been notified.');
   } catch (error) {
-    console.error("Error notifying users:", error);
+    console.error('Error notifying users:', error);
   }
 };
 

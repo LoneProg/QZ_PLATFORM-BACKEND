@@ -1,11 +1,11 @@
 // In your TestResult schema (models/testResults.js)
 const testResultSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  testId: { type: mongoose.Schema.Types.ObjectId, ref: "Test", required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  testId: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
   status: {
     type: String,
-    enum: ["in-progress", "completed"],
-    default: "in-progress",
+    enum: ['in-progress', 'completed'],
+    default: 'in-progress',
   },
   startTime: { type: Date, default: Date.now }, // Record start time
   endTime: { type: Date }, // Optional: Record end time for history
@@ -15,7 +15,7 @@ const testResultSchema = new mongoose.Schema({
   },
   answers: [
     {
-      questionId: { type: mongoose.Schema.Types.ObjectId, ref: "Question" },
+      questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
       answer: String,
       isCorrect: Boolean,
     },
@@ -23,5 +23,5 @@ const testResultSchema = new mongoose.Schema({
   score: Number,
 });
 
-const TestResult = mongoose.model("TestResult", testResultSchema);
+const TestResult = mongoose.model('TestResult', testResultSchema);
 module.exports = TestResult;

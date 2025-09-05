@@ -1,11 +1,11 @@
-const asyncHandler = require("express-async-handler");
-const { sendMail } = require("../utils/sendEmail");
-const User = require("../models/Users");
-const bcrypt = require("bcryptjs");
-const generateRandomPassword = require("../utils/generatePassword");
-const csvParser = require("csv-parser");
-const fs = require("fs");
-const path = require("path");
+const asyncHandler = require('express-async-handler');
+const { sendMail } = require('../utils/sendEmail');
+const User = require('../models/Users');
+const bcrypt = require('bcryptjs');
+const generateRandomPassword = require('../utils/generatePassword');
+const csvParser = require('csv-parser');
+const fs = require('fs');
+const path = require('path');
 
 // @desc Create User
 // @route POST /api/users
@@ -14,22 +14,22 @@ const createUser = asyncHandler(async (req, res) => {
   const { name, email, role } = req.body;
 
   // Check if the logged-in user is a Test Creator
-  if (req.user.role !== "testCreator") {
+  if (req.user.role !== 'testCreator') {
     res.status(403);
-    throw new Error("Only Test Creators can create users");
+    throw new Error('Only Test Creators can create users');
   }
 
   // Validation
   if (!name || !email) {
     res.status(400);
-    throw new Error("Name and email are mandatory");
+    throw new Error('Name and email are mandatory');
   }
 
   // Check if user exists
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
-    throw new Error("User already exists");
+    throw new Error('User already exists');
   }
 
   // Generate a random password
@@ -46,11 +46,11 @@ const createUser = asyncHandler(async (req, res) => {
     role,
     createdBy: req.user._id,
   });
-  console.log("CreatedBy:", req.user._id);
+  console.log('CreatedBy:', req.user._id);
 
   if (user) {
     res.status(201).json({
-      message: "User Successfully Created",
+      message: 'User Successfully Created',
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -62,14 +62,14 @@ const createUser = asyncHandler(async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL,
       to: email,
-      subject: "Welcome to QzPlatform!",
+      subject: 'Welcome to QzPlatform!',
       html: userCreationMailTemplate(name, randomPassword),
     };
 
     await sendMail(mailOptions); // Send the email
   } else {
     res.status(400);
-    throw new Error("Invalid user data");
+    throw new Error('Invalid user data');
   }
 });
 
@@ -77,28 +77,28 @@ const createUser = asyncHandler(async (req, res) => {
 // @route POST /api/users/upload
 // @access protected (Test Creator Only)
 const createUsersFromCSV = asyncHandler(async (req, res) => {
-  if (req.user.role !== "testCreator") {
+  if (req.user.role !== 'testCreator') {
     res.status(403);
-    throw new Error("Only Test Creators can upload users");
+    throw new Error('Only Test Creators can upload users');
   }
 
   if (!req.file) {
     res.status(400);
-    throw new Error("Please upload a CSV file");
+    throw new Error('Please upload a CSV file');
   }
 
-  if (req.file.mimetype !== "text/csv") {
+  if (req.file.mimetype !== 'text/csv') {
     res.status(400);
-    throw new Error("Invalid file format. Please upload a CSV file.");
+    throw new Error('Invalid file format. Please upload a CSV file.');
   }
 
   const results = [];
-  const filePath = path.join(__dirname, "../uploads", req.file.filename);
+  const filePath = path.join(__dirname, '../uploads', req.file.filename);
 
   fs.createReadStream(filePath)
     .pipe(csvParser())
-    .on("data", (data) => results.push(data))
-    .on("end", async () => {
+    .on('data', data => results.push(data))
+    .on('end', async () => {
       const createdUsers = [];
       const errors = [];
 
@@ -106,13 +106,13 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         const { name, email, role } = row;
 
         if (!name || !email) {
-          errors.push({ email, message: "Name and email are mandatory" });
+          errors.push({ email, message: 'Name and email are mandatory' });
           continue;
         }
 
         const userExists = await User.findOne({ email });
         if (userExists) {
-          errors.push({ email, message: "User already exists" });
+          errors.push({ email, message: 'User already exists' });
           continue;
         }
 
@@ -133,7 +133,7 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
           const mailOptions = {
             from: process.env.EMAIL,
             to: email,
-            subject: "Welcome to QzPlatform!",
+            subject: 'Welcome to QzPlatform!',
             html: csvUserCreationMailTemplate(name, randomPassword),
           };
 
@@ -146,19 +146,19 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
         }
       }
 
-      fs.unlink(filePath, (err) => {
+      fs.unlink(filePath, err => {
         if (err) {
-          console.error("Error deleting file:", err);
+          console.error('Error deleting file:', err);
         }
       });
 
       res.status(201).json({
-        message: "Users created successfully from CSV",
+        message: 'Users created successfully from CSV',
         createdUsers,
         errors,
       });
     })
-    .on("error", (err) => {
+    .on('error', err => {
       res.status(500);
       throw new Error(`Error processing CSV file: ${err.message}`);
     });
@@ -169,16 +169,16 @@ const createUsersFromCSV = asyncHandler(async (req, res) => {
 // @access protected (Test Creators Only)
 const getUsers = asyncHandler(async (req, res) => {
   // Check if the logged-in user is a Test Creator
-  if (req.user.role !== "testCreator") {
+  if (req.user.role !== 'testCreator') {
     return res
       .status(403)
-      .json({ message: "Access restricted to Test Creators only" });
+      .json({ message: 'Access restricted to Test Creators only' });
   }
 
   // Retrieve only 'testTaker' users created by the logged-in Test Creator
   const users = await User.find({
     createdBy: req.user._id, // Ensure the 'createdBy' field matches the logged-in Test Creator's _id
-    role: "testTaker", // Ensure only testTakers are returned
+    role: 'testTaker', // Ensure only testTakers are returned
   });
 
   if (users && users.length > 0) {
@@ -186,7 +186,7 @@ const getUsers = asyncHandler(async (req, res) => {
   } else {
     res
       .status(404)
-      .json({ message: "No test takers found for this Test Creator" });
+      .json({ message: 'No test takers found for this Test Creator' });
   }
 });
 
@@ -218,7 +218,7 @@ const updateUser = asyncHandler(async (req, res) => {
     const updatedUser = await user.save();
 
     res.json({
-      message: "User Updated Successfully",
+      message: 'User Updated Successfully',
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
@@ -228,7 +228,7 @@ const updateUser = asyncHandler(async (req, res) => {
     const mailOptions = {
       from: process.env.EMAIL,
       to: updatedUser.email,
-      subject: "Your QzPlatform Account Has Been Updated",
+      subject: 'Your QzPlatform Account Has Been Updated',
       html: userUpdateMailTemplate(updatedUser.name),
     };
 
@@ -247,7 +247,7 @@ const deleteUser = asyncHandler(async (req, res) => {
 
   if (user) {
     await User.findByIdAndDelete(req.params.userId);
-    res.json({ message: "User removed successfully" });
+    res.json({ message: 'User removed successfully' });
   } else {
     res.status(404);
     throw new Error(`User not found with ID: ${req.params.userId}`);

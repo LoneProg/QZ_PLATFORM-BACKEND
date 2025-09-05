@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const TestSchema = new Schema(
@@ -8,7 +8,7 @@ const TestSchema = new Schema(
     category: { type: String },
     createdBy: { type: String, required: true },
     instruction: { type: String },
-    questions: [{ type: Schema.Types.ObjectId, ref: "Question" }],
+    questions: [{ type: Schema.Types.ObjectId, ref: 'Question' }],
 
     // Scheduling settings
     scheduling: {
@@ -16,7 +16,7 @@ const TestSchema = new Schema(
       endDate: { type: Date },
       status: {
         type: String,
-        enum: ["unscheduled", "scheduled", "active", "expired", "closed"],
+        enum: ['unscheduled', 'scheduled', 'active', 'expired', 'closed'],
       },
     },
 
@@ -42,8 +42,8 @@ const TestSchema = new Schema(
     assignment: {
       method: {
         type: String,
-        enum: ["manual", "email", "link"],
-        default: "manual",
+        enum: ['manual', 'email', 'link'],
+        default: 'manual',
       }, // Assignment method
 
       // Scheduled assignment settings
@@ -54,8 +54,8 @@ const TestSchema = new Schema(
 
       // Fields for manual assignment
       manualAssignment: {
-        individualUsers: [{ type: Schema.Types.ObjectId, ref: "User" }], // Array of individual user IDs
-        groups: [{ type: Schema.Types.ObjectId, ref: "Group" }], // Array of group IDs
+        individualUsers: [{ type: Schema.Types.ObjectId, ref: 'User' }], // Array of individual user IDs
+        groups: [{ type: Schema.Types.ObjectId, ref: 'Group' }], // Array of group IDs
       },
 
       // For email invitations
@@ -64,14 +64,14 @@ const TestSchema = new Schema(
       // Link sharing type
       linkSharing: {
         type: String,
-        enum: ["public", "restricted"],
-        default: "restricted",
+        enum: ['public', 'restricted'],
+        default: 'restricted',
       },
     },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt fields
-  },
+  }
 );
 
-module.exports = mongoose.model("Test", TestSchema);
+module.exports = mongoose.model('Test', TestSchema);

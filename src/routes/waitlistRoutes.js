@@ -1,8 +1,8 @@
-const express = require("express");
+const express = require('express');
 const {
   addToWaitlist,
   getWaitlist,
-} = require("../controllers/waitlistController");
+} = require('../controllers/waitlistController');
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ const router = express.Router();
  *         description: Email already added to the waitlist
  *
  */
-router.post("/", addToWaitlist);
+router.post('/', addToWaitlist);
 
 /**
  * @swagger
@@ -44,5 +44,5 @@ router.post("/", addToWaitlist);
  *       200:
  *         description: List of users on the waitlist
  */
-router.get("/", getWaitlist);
+router.get('/', getWaitlist);
 module.exports = router;

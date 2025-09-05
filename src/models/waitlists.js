@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const waitlistSchema = new mongoose.Schema({
   email: {
@@ -16,4 +16,4 @@ const waitlistSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Waitlist", waitlistSchema);
+module.exports = mongoose.model('Waitlist', waitlistSchema);

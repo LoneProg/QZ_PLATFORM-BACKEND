@@ -1,9 +1,9 @@
-const asyncHandler = require("express-async-handler");
-const Test = require("../models/tests");
-const Question = require("../models/questions");
-const TestResult = require("../models/testResults");
-const mongoose = require("mongoose");
-const { submitTestAutomatically } = require("./utils/autoSubmitTest");
+const asyncHandler = require('express-async-handler');
+const Test = require('../models/tests');
+const Question = require('../models/questions');
+const TestResult = require('../models/testResults');
+const mongoose = require('mongoose');
+const { submitTestAutomatically } = require('./utils/autoSubmitTest');
 
 // Get available tests for a user
 const getAvailableTests = asyncHandler(async (req, res) => {
@@ -11,11 +11,11 @@ const getAvailableTests = asyncHandler(async (req, res) => {
 
   const availableTests = await Test.find({
     $or: [
-      { "assignment.manualAssignment.individualUsers": userId },
-      { "assignment.linkSharing": "public" },
+      { 'assignment.manualAssignment.individualUsers': userId },
+      { 'assignment.linkSharing': 'public' },
     ],
-    "scheduling.startDate": { $lte: new Date() },
-    "scheduling.endDate": { $gte: new Date() },
+    'scheduling.startDate': { $lte: new Date() },
+    'scheduling.endDate': { $gte: new Date() },
   });
 
   res.status(200).json({ availableTests });
@@ -27,7 +27,7 @@ const startTest = asyncHandler(async (req, res) => {
   const { testId } = req.params;
 
   const test = await Test.findById(testId);
-  if (!test) return res.status(404).json({ message: "Test not found" });
+  if (!test) return res.status(404).json({ message: 'Test not found' });
 
   let testResult = await TestResult.findOne({ userId, testId });
 
@@ -35,7 +35,7 @@ const startTest = asyncHandler(async (req, res) => {
     testResult = await TestResult.create({
       userId,
       testId,
-      status: "in-progress",
+      status: 'in-progress',
       progress: {
         currentQuestionIndex: 0,
         remainingTime: test.timeLimit * 60, // Convert minutes to seconds
@@ -44,7 +44,7 @@ const startTest = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json({
-    message: "Test started successfully",
+    message: 'Test started successfully',
     testResult,
   });
 });
@@ -58,18 +58,18 @@ const getTestQuestion = asyncHandler(async (req, res) => {
   if (!testResult)
     return res
       .status(404)
-      .json({ message: "Test not started or does not exist" });
+      .json({ message: 'Test not started or does not exist' });
 
-  if (testResult.status !== "in-progress")
+  if (testResult.status !== 'in-progress')
     return res
       .status(400)
-      .json({ message: "Test already submitted or not in progress" });
+      .json({ message: 'Test already submitted or not in progress' });
 
-  const test = await Test.findById(testId).populate("questions");
-  if (!test) return res.status(404).json({ message: "Test not found" });
+  const test = await Test.findById(testId).populate('questions');
+  if (!test) return res.status(404).json({ message: 'Test not found' });
 
   const question = test.questions[questionIndex];
-  if (!question) return res.status(404).json({ message: "Question not found" });
+  if (!question) return res.status(404).json({ message: 'Question not found' });
 
   res.status(200).json({ question });
 });
@@ -84,12 +84,12 @@ const saveTestProgress = asyncHandler(async (req, res) => {
   if (!testResult)
     return res
       .status(404)
-      .json({ message: "Test not started or does not exist" });
+      .json({ message: 'Test not started or does not exist' });
 
-  if (testResult.status !== "in-progress")
+  if (testResult.status !== 'in-progress')
     return res
       .status(400)
-      .json({ message: "Test already submitted or not in progress" });
+      .json({ message: 'Test already submitted or not in progress' });
 
   // Check if time has expired
   const elapsedTime = (Date.now() - testResult.startTime.getTime()) / 1000; // in seconds
@@ -102,7 +102,7 @@ const saveTestProgress = asyncHandler(async (req, res) => {
   testResult.progress = progress;
   await testResult.save();
 
-  res.status(200).json({ message: "Progress saved successfully" });
+  res.status(200).json({ message: 'Progress saved successfully' });
 });
 
 // Submit a completed test
@@ -115,16 +115,16 @@ const submitTest = asyncHandler(async (req, res) => {
   if (!testResult)
     return res
       .status(404)
-      .json({ message: "Test not started or does not exist" });
+      .json({ message: 'Test not started or does not exist' });
 
-  if (testResult.status !== "in-progress")
+  if (testResult.status !== 'in-progress')
     return res
       .status(400)
-      .json({ message: "Test already submitted or not in progress" });
+      .json({ message: 'Test already submitted or not in progress' });
 
   // Assuming answers array contains questionId and user's answer
   // Calculate the score and mark test as completed
-  testResult.answers = answers.map((answer) => ({
+  testResult.answers = answers.map(answer => ({
     questionId: mongoose.Types.ObjectId(answer.questionId),
     answer: answer.answer,
     isCorrect: answer.isCorrect, // Determine correctness based on question type and correct answer
@@ -132,17 +132,17 @@ const submitTest = asyncHandler(async (req, res) => {
 
   // Calculate score
   const correctAnswersCount = testResult.answers.filter(
-    (answer) => answer.isCorrect,
+    answer => answer.isCorrect
   ).length;
   testResult.score = (correctAnswersCount / testResult.answers.length) * 100;
-  testResult.status = "completed";
+  testResult.status = 'completed';
   testResult.endTime = new Date();
 
   await testResult.save();
 
   res
     .status(200)
-    .json({ message: "Test submitted successfully", score: testResult.score });
+    .json({ message: 'Test submitted successfully', score: testResult.score });
 });
 
 module.exports = {

@@ -1,6 +1,6 @@
-const asyncHandler = require("express-async-handler");
-const Test = require("../models/tests");
-const express = require("express");
+const asyncHandler = require('express-async-handler');
+const Test = require('../models/tests');
+const express = require('express');
 
 //@Desc Create a new test
 //@Route POST /api/tests
@@ -18,7 +18,7 @@ const createTest = async (req, res) => {
     });
 
     const savedTest = await newTest.save();
-    res.status(201).json({ message: "New Test Created", savedTest });
+    res.status(201).json({ message: 'New Test Created', savedTest });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -38,7 +38,7 @@ const createTestAndContinue = async (req, res) => {
 
     const savedTest = await newTest.save();
     res.status(201).json({
-      message: "New Created Successfully, proceed to add question",
+      message: 'New Created Successfully, proceed to add question',
       testId: savedTest,
     });
   } catch (error) {
@@ -54,8 +54,8 @@ const getTests = async (req, res) => {
     const tests = await Test.find();
 
     // Log each Test ID to the console
-    tests.forEach((test) => {
-      console.log("Test ID:", test._id);
+    tests.forEach(test => {
+      console.log('Test ID:', test._id);
     });
 
     res.status(200).json(tests);
@@ -70,23 +70,23 @@ const getTests = async (req, res) => {
 const getTestById = async (req, res) => {
   try {
     // Log the ID being passed
-    console.log("Test ID:", req.params.testId);
+    console.log('Test ID:', req.params.testId);
 
     // Attempt to find the test by ID
-    const test = await Test.findById(req.params.testId).populate("createdBy");
+    const test = await Test.findById(req.params.testId).populate('createdBy');
 
     if (!test) {
       // Log if the test is not found
-      console.log("Test not found");
-      return res.status(404).json({ message: "Test not found" });
+      console.log('Test not found');
+      return res.status(404).json({ message: 'Test not found' });
     }
 
     // Log the found test
-    console.log("Found Test:", test);
+    console.log('Found Test:', test);
     res.status(200).json(test);
   } catch (error) {
     // Log any errors that occur
-    console.error("Error retrieving test:", error.message);
+    console.error('Error retrieving test:', error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -100,7 +100,7 @@ const updateTest = async (req, res) => {
 
     const test = await Test.findById(req.params.testId);
     if (!test) {
-      return res.status(404).json({ message: "Test not found" });
+      return res.status(404).json({ message: 'Test not found' });
     }
 
     test.testName = testName || test.testName;
@@ -123,9 +123,9 @@ const deleteTest = async (req, res) => {
   try {
     const test = await Test.findByIdAndDelete(req.params.testId);
     if (!test) {
-      return res.status(404).json({ message: "Test not found" });
+      return res.status(404).json({ message: 'Test not found' });
     }
-    res.status(200).json({ message: "Test deleted successfully" });
+    res.status(200).json({ message: 'Test deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

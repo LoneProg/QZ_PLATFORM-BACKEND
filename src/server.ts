@@ -1,9 +1,9 @@
-import dotenv from "dotenv";
-import settings from "./config/settings";
+import dotenv from 'dotenv';
+import settings from './config/settings';
 dotenv.config();
 
-import app from "./app";
-import connectDB from "./config/db";
+import app from './app';
+import connectDB from './config/db';
 // import { startCountdown } from "./utils/countDown";
 // import { executeScheduledAssignments } from "./utils/scheduler";
 

@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-require("dotenv").config();
+const mongoose = require('mongoose');
+require('dotenv').config();
 
 const connectDB = async () => {
   try {
@@ -9,9 +9,9 @@ const connectDB = async () => {
       tlsAllowInvalidCertificates: true, // Allow invalid certificates (use with caution in development)
       serverSelectionTimeoutMS: 5000, // 5 seconds timeout
     });
-    console.log("MongoDB connected");
+    console.log('MongoDB connected');
   } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
+    console.error('MongoDB connection failed:', error.message);
     process.exit(1);
   }
 };

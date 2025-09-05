@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
-import { IUser } from "../types";
+import mongoose, { Document, Schema, Model } from 'mongoose';
+import { IUser } from '../types';
 
 // 2️⃣ Define the schema
 const UserSchema: Schema<IUser> = new Schema(
@@ -19,8 +19,8 @@ const UserSchema: Schema<IUser> = new Schema(
     },
     role: {
       type: String,
-      enum: ["admin", "testCreator", "testTaker"],
-      default: "testTaker",
+      enum: ['admin', 'testCreator', 'testTaker'],
+      default: 'testTaker',
     },
     isActive: {
       type: Boolean,
@@ -28,7 +28,7 @@ const UserSchema: Schema<IUser> = new Schema(
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // References the testCreator
+      ref: 'User', // References the testCreator
       required: false,
     },
     resetPasswordToken: {
@@ -38,10 +38,10 @@ const UserSchema: Schema<IUser> = new Schema(
       type: Date,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 // 3️⃣ Create the model
-const User: Model<IUser> = mongoose.model<IUser>("User", UserSchema);
+const User: Model<IUser> = mongoose.model<IUser>('User', UserSchema);
 
 export default User;

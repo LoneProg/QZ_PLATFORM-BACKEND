@@ -1,6 +1,6 @@
-const asyncHandler = require("express-async-handler");
-const Test = require("../models/tests"); // Replace with your actual Test model
-const User = require("../models/Users"); // Replace with your actual User model
+const asyncHandler = require('express-async-handler');
+const Test = require('../models/tests'); // Replace with your actual Test model
+const User = require('../models/Users'); // Replace with your actual User model
 
 // @desc    Get dashboard overview
 // @route   GET /api/dashboard/overview
@@ -13,20 +13,20 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
     const totalTests = await Test.countDocuments({ createdBy: userId });
     const totalScheduledTests = await Test.countDocuments({
       createdBy: userId,
-      "scheduling.status": "scheduled",
+      'scheduling.status': 'scheduled',
     });
     const totalFinishedTests = await Test.countDocuments({
       createdBy: userId,
-      "scheduling.status": "finished",
+      'scheduling.status': 'finished',
     });
     const totalInProgressTests = await Test.countDocuments({
       createdBy: userId,
-      "scheduling.status": "active",
+      'scheduling.status': 'active',
     });
-    const totalTestTakers = await User.countDocuments({ role: "testTaker" });
+    const totalTestTakers = await User.countDocuments({ role: 'testTaker' });
 
     res.status(200).json({
-      message: "Dashboard overview retrieved successfully",
+      message: 'Dashboard overview retrieved successfully',
       data: {
         totalTests,
         totalScheduledTests,
@@ -38,7 +38,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to retrieve dashboard overview", error });
+      .json({ message: 'Failed to retrieve dashboard overview', error });
   }
 });
 
@@ -54,13 +54,13 @@ const getRecentlyCreatedTests = asyncHandler(async (req, res) => {
       .limit(5);
 
     res.status(200).json({
-      message: "Recently created tests retrieved successfully",
+      message: 'Recently created tests retrieved successfully',
       data: recentTests,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to retrieve recently created tests", error });
+      .json({ message: 'Failed to retrieve recently created tests', error });
   }
 });
 
@@ -73,19 +73,19 @@ const getRecentlyScheduledTests = asyncHandler(async (req, res) => {
   try {
     const recentScheduledTests = await Test.find({
       createdBy: userId,
-      "scheduling.status": "scheduled",
+      'scheduling.status': 'scheduled',
     })
-      .sort({ "scheduling.startDate": -1 })
+      .sort({ 'scheduling.startDate': -1 })
       .limit(5);
 
     res.status(200).json({
-      message: "Recently scheduled tests retrieved successfully",
+      message: 'Recently scheduled tests retrieved successfully',
       data: recentScheduledTests,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to retrieve recently scheduled tests", error });
+      .json({ message: 'Failed to retrieve recently scheduled tests', error });
   }
 });
 
@@ -94,21 +94,19 @@ const getRecentlyScheduledTests = asyncHandler(async (req, res) => {
 // @access  Public
 const getRecentTestTakers = asyncHandler(async (req, res) => {
   try {
-    const recentTestTakers = await User.find({ role: "testTaker" })
+    const recentTestTakers = await User.find({ role: 'testTaker' })
       .sort({ createdAt: -1 })
       .limit(5);
 
     res.status(200).json({
-      message: "Recent test taker tracker list retrieved successfully",
+      message: 'Recent test taker tracker list retrieved successfully',
       data: recentTestTakers,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to retrieve recent test taker tracker list",
-        error,
-      });
+    res.status(500).json({
+      message: 'Failed to retrieve recent test taker tracker list',
+      error,
+    });
   }
 });
 
@@ -121,17 +119,17 @@ const getUpcomingTests = asyncHandler(async (req, res) => {
   try {
     const upcomingTests = await Test.find({
       createdBy: userId,
-      "scheduling.startDate": { $gt: new Date() },
+      'scheduling.startDate': { $gt: new Date() },
     });
 
     res.status(200).json({
-      message: "Upcoming tests retrieved successfully",
+      message: 'Upcoming tests retrieved successfully',
       data: upcomingTests,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to retrieve upcoming tests", error });
+      .json({ message: 'Failed to retrieve upcoming tests', error });
   }
 });
 
@@ -147,10 +145,10 @@ const getTestPerformanceSummary = asyncHandler(async (req, res) => {
       {
         $group: {
           _id: null,
-          averageScore: { $avg: "$results.score" },
+          averageScore: { $avg: '$results.score' },
           passRate: {
             $avg: {
-              $cond: [{ $gte: ["$results.score", "$passingScore"] }, 1, 0],
+              $cond: [{ $gte: ['$results.score', '$passingScore'] }, 1, 0],
             },
           },
         },
@@ -158,13 +156,13 @@ const getTestPerformanceSummary = asyncHandler(async (req, res) => {
     ]);
 
     res.status(200).json({
-      message: "Performance summary retrieved successfully",
+      message: 'Performance summary retrieved successfully',
       data: performanceSummary,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to retrieve performance summary", error });
+      .json({ message: 'Failed to retrieve performance summary', error });
   }
 });
 

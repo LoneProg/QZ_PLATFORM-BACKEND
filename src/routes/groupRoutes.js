@@ -1,28 +1,28 @@
-const express = require("express");
+const express = require('express');
 const {
   createGroup,
   getAllGroups,
   getGroupById,
   updateGroup,
   deleteGroup,
-} = require("../controllers/groupController");
+} = require('../controllers/groupController');
 
 const router = express.Router();
 
 //@Route /api/groups
 //@Desc Create a new group
-router.post("/", createGroup);
+router.post('/', createGroup);
 
 // Get all groups
-router.get("/", getAllGroups);
+router.get('/', getAllGroups);
 
 // Get group by ID
-router.get("/:groupId", getGroupById);
+router.get('/:groupId', getGroupById);
 
 // Update a group
-router.put("/:groupId", updateGroup);
+router.put('/:groupId', updateGroup);
 
 // Delete a group
-router.delete("/:groupId", deleteGroup);
+router.delete('/:groupId', deleteGroup);
 
 module.exports = router;

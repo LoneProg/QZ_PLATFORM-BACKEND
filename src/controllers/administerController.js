@@ -1,11 +1,11 @@
-const asyncHandler = require("express-async-handler");
-const Test = require("../models/tests");
-const express = require("express");
-const User = require("../models/Users");
+const asyncHandler = require('express-async-handler');
+const Test = require('../models/tests');
+const express = require('express');
+const User = require('../models/Users');
 // const Group = require('../models/Group');
-const { sendMail } = require("../utils/sendEmail");
-const { generateSharableLink } = require("../utils/generateSharebleLink"); // Updated utility
-const { generateRandomPassword } = require("../utils/generatePassword");
+const { sendMail } = require('../utils/sendEmail');
+const { generateSharableLink } = require('../utils/generateSharebleLink'); // Updated utility
+const { generateRandomPassword } = require('../utils/generatePassword');
 
 // @Desc    Configure and administer a test
 // @route   POST /api/tests/:testId/administer
@@ -17,14 +17,14 @@ const administerTest = asyncHandler(async (req, res) => {
 
   const test = await Test.findById(testId);
   if (!test) {
-    return res.status(404).json({ message: "Test not found" });
+    return res.status(404).json({ message: 'Test not found' });
   }
 
   if (scheduling) {
     test.scheduling = {
       ...test.scheduling,
       ...scheduling,
-      status: scheduling.endDate ? "scheduled" : "active",
+      status: scheduling.endDate ? 'scheduled' : 'active',
     };
   }
 
@@ -64,12 +64,12 @@ const administerTest = asyncHandler(async (req, res) => {
       if (isNaN(test.assignment.scheduledAssignment.scheduledTime.getTime())) {
         return res
           .status(400)
-          .json({ message: "Invalid date format for scheduledTime" });
+          .json({ message: 'Invalid date format for scheduledTime' });
       }
     }
 
-    if (assignment.method === "manual") {
-      test.assignment.method = "manual";
+    if (assignment.method === 'manual') {
+      test.assignment.method = 'manual';
       if (assignment.manualAssignment) {
         let individualUserIds = [];
 
@@ -77,9 +77,9 @@ const administerTest = asyncHandler(async (req, res) => {
         if (assignment.manualAssignment.individualUsers) {
           individualUserIds = await User.find({
             email: { $in: assignment.manualAssignment.individualUsers },
-          }).select("_id");
+          }).select('_id');
 
-          individualUserIds = individualUserIds.map((user) => user._id);
+          individualUserIds = individualUserIds.map(user => user._id);
         }
 
         test.assignment.manualAssignment = {
@@ -90,29 +90,29 @@ const administerTest = asyncHandler(async (req, res) => {
       }
     }
 
-    if (assignment.method === "email" && assignment.invitationEmails) {
-      test.assignment.method = "email";
+    if (assignment.method === 'email' && assignment.invitationEmails) {
+      test.assignment.method = 'email';
       test.assignment.invitationEmails = assignment.invitationEmails;
     }
 
-    if (assignment.method === "link") {
-      test.assignment.method = "link";
-      test.assignment.linkSharing = assignment.linkSharing || "restricted";
+    if (assignment.method === 'link') {
+      test.assignment.method = 'link';
+      test.assignment.linkSharing = assignment.linkSharing || 'restricted';
 
       const link = generateSharableLink(test, assignment.linkSharing);
       await test.save(); // Save before returning link
       return res
         .status(200)
-        .json({ message: "Test configured successfully", test, link });
+        .json({ message: 'Test configured successfully', test, link });
     }
   }
 
   try {
     await test.save();
-    res.status(200).json({ message: "Test administered successfully", test });
+    res.status(200).json({ message: 'Test administered successfully', test });
   } catch (error) {
-    console.error("Error Administering Test:", error);
-    res.status(500).json({ message: "Failed to administer test", error });
+    console.error('Error Administering Test:', error);
+    res.status(500).json({ message: 'Failed to administer test', error });
   }
 });
 
@@ -126,7 +126,7 @@ const getAdministerSettings = asyncHandler(async (req, res) => {
   const test = await Test.findById(testId);
 
   if (!test) {
-    return res.status(404).json({ message: "Test not found" });
+    return res.status(404).json({ message: 'Test not found' });
   }
 
   // Extracting administration-related details
@@ -138,12 +138,10 @@ const getAdministerSettings = asyncHandler(async (req, res) => {
     assignment: test.assignment,
   };
 
-  res
-    .status(200)
-    .json({
-      message: "Administration settings retrieved successfully",
-      administrationSettings,
-    });
+  res.status(200).json({
+    message: 'Administration settings retrieved successfully',
+    administrationSettings,
+  });
 });
 
 // @Desc    Update test configuration and administration settings
@@ -156,7 +154,7 @@ const updateTestSettings = asyncHandler(async (req, res) => {
   // Find the test by ID
   const test = await Test.findById(testId);
   if (!test) {
-    return res.status(404).json({ message: "Test not found" });
+    return res.status(404).json({ message: 'Test not found' });
   }
 
   // Update scheduling settings
@@ -164,7 +162,7 @@ const updateTestSettings = asyncHandler(async (req, res) => {
     test.scheduling = {
       ...test.scheduling,
       ...scheduling,
-      status: scheduling.endDate ? "scheduled" : "active",
+      status: scheduling.endDate ? 'scheduled' : 'active',
     };
   }
 
@@ -197,10 +195,10 @@ const updateTestSettings = asyncHandler(async (req, res) => {
     await test.save();
     res
       .status(200)
-      .json({ message: "Test settings updated successfully", test });
+      .json({ message: 'Test settings updated successfully', test });
   } catch (error) {
-    console.error("Error Updating Test Settings:", error);
-    res.status(500).json({ message: "Failed to update test settings", error });
+    console.error('Error Updating Test Settings:', error);
+    res.status(500).json({ message: 'Failed to update test settings', error });
   }
 });
 

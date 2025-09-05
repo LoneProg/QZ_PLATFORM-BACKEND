@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 // Function to generate a sharable link
 const generateSharableLink = (test, type) => {
@@ -15,10 +15,10 @@ const generateSharableLink = (test, type) => {
   };
 
   // Create a token with all test settings and configurations
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
 
   // Construct the URL with the token as a query parameter
-  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   return `${baseUrl}/take-test?token=${token}&type=${type}`;
 };
 

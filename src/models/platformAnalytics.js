@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const platformAnalyticsSchema = new Schema(
@@ -33,7 +33,7 @@ const platformAnalyticsSchema = new Schema(
       required: true,
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-module.exports = mongoose.model("platformAnalytics", platformAnalyticsSchema);
+module.exports = mongoose.model('platformAnalytics', platformAnalyticsSchema);

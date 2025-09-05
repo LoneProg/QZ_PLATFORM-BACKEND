@@ -1,10 +1,10 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 dotenv.config(); // <-- must come first
-import { cleanEnv, str, port } from "envalid";
+import { cleanEnv, str, port } from 'envalid';
 
 const settings = cleanEnv(process.env, {
   PORT: port({ default: 3000 }),
-  NODE_ENV: str({ choices: ["development", "production", "test"] }),
+  NODE_ENV: str({ choices: ['development', 'production', 'test'] }),
   MONGO_URI: str(),
   EMAIL_HOST: str(),
   EMAIL_PORT: port(),

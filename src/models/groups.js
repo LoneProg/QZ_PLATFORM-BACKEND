@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const GroupSchema = new mongoose.Schema(
   {
@@ -12,11 +12,11 @@ const GroupSchema = new mongoose.Schema(
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-module.exports = mongoose.model("Group", GroupSchema);
+module.exports = mongoose.model('Group', GroupSchema);

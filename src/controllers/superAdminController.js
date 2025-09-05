@@ -1,10 +1,10 @@
-const asyncHandler = require("express-async-handler");
-const User = require("../models/Users");
-const Group = require("../models/groups");
-const Test = require("../models/tests");
-const Admin = require("../models/admins");
-const Question = require("../models/questions");
-const PlatformAnalytics = require("../models/platformAnalytics");
+const asyncHandler = require('express-async-handler');
+const User = require('../models/Users');
+const Group = require('../models/groups');
+const Test = require('../models/tests');
+const Admin = require('../models/admins');
+const Question = require('../models/questions');
+const PlatformAnalytics = require('../models/platformAnalytics');
 
 //@Desc Register Super Admin
 //@Route POST /api/superadmin/register
@@ -16,7 +16,7 @@ const register = async (req, res) => {
     // Check if user already exists
     const existingUser = await Admin.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({ message: "Admin already exists" });
+      return res.status(400).json({ message: 'Admin already exists' });
     }
 
     // Create new user
@@ -26,12 +26,12 @@ const register = async (req, res) => {
       email,
       password: hashedPassword,
     });
-    const firstName = admin.name.split(" ")[0];
+    const firstName = admin.name.split(' ')[0];
 
     await sendMail({
       from: process.env.EMAIL,
       to: admin.email,
-      subject: "Welcome to QzPlatform!",
+      subject: 'Welcome to QzPlatform!',
       html: `
                 <p>Dear ${firstName},</p>
         
@@ -48,7 +48,7 @@ const register = async (req, res) => {
             `,
     });
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -63,20 +63,20 @@ const login = async (req, res) => {
 
     const admin = await Admin.findOne({ email, role });
     if (!admin) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
       { id: admin._id, role: admin.role },
       process.env.JWT_SECRET,
       {
-        expiresIn: keepMeSignedIn ? "7d" : "1h",
-      },
+        expiresIn: keepMeSignedIn ? '7d' : '1h',
+      }
     );
 
     res.status(200).json({ token });
@@ -92,25 +92,25 @@ const forgotPassword = async (req, res) => {
     const admin = await Admin.findOne({ email });
 
     if (!admin) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: 'User not found' });
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetToken = crypto.randomBytes(32).toString('hex');
     //const resetPasswordUrl = `${process.env.BASE_URL}/reset-password/${resetToken}`;
     const resetPasswordUrl = `https://qz-platform-backend-1.onrender.com/reset-password/${resetToken}`;
-    console.log("Generated Reset URL:", resetPasswordUrl);
+    console.log('Generated Reset URL:', resetPasswordUrl);
 
     // Assuming your User model has a resetPasswordToken and resetPasswordExpires fields
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
     await admin.save();
-    const firstName = admin.name.split(" ")[0];
+    const firstName = admin.name.split(' ')[0];
 
     // Send reset password email
     await sendMail({
       from: process.env.EMAIL,
       to: admin.email,
-      subject: "Password Reset Request - QzPlatform",
+      subject: 'Password Reset Request - QzPlatform',
       html: `
                 <p>Dear ${firstName},</p>
         
@@ -127,7 +127,7 @@ const forgotPassword = async (req, res) => {
             `,
     });
 
-    res.status(200).json({ message: "Reset password link sent" });
+    res.status(200).json({ message: 'Reset password link sent' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -140,14 +140,14 @@ const changePassword = async (req, res) => {
     const { token } = req.params; // Get token from URL parameters
 
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({ message: "Passwords do not match" });
+      return res.status(400).json({ message: 'Passwords do not match' });
     }
 
     // Find admin by reset token without checking for expiration
     const admin = await Admin.findOne({ resetPasswordToken: token });
 
     if (!admin) {
-      return res.status(400).json({ message: "Invalid token" });
+      return res.status(400).json({ message: 'Invalid token' });
     }
 
     // Update the admin's password
@@ -156,7 +156,7 @@ const changePassword = async (req, res) => {
     admin.resetPasswordExpires = undefined;
     await admin.save();
 
-    res.status(200).json({ message: "Password changed successfully" });
+    res.status(200).json({ message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -169,11 +169,11 @@ const getPlatformStats = asyncHandler(async (req, res) => {
   const totalGroups = await Group.countDocuments();
   const totalTests = await Test.countDocuments();
   const totalQuestions = await Question.countDocuments();
-  const testTakers = await User.countDocuments({ role: "testTaker" });
-  const testCreators = await User.countDocuments({ role: "testCreator" });
+  const testTakers = await User.countDocuments({ role: 'testTaker' });
+  const testCreators = await User.countDocuments({ role: 'testCreator' });
   const activeUsers = await User.countDocuments({ isActive: true });
   const inactiveUsers = await User.countDocuments({ isActive: false });
-  const completedTests = await Test.countDocuments({ status: "completed" });
+  const completedTests = await Test.countDocuments({ status: 'completed' });
 
   // Save analytics to the database
   const analytics = new PlatformAnalytics({
@@ -184,7 +184,7 @@ const getPlatformStats = asyncHandler(async (req, res) => {
     activeUsers,
     inactiveUsers,
     completedTests,
-    message: "Analytics saved successfully",
+    message: 'Analytics saved successfully',
   });
   await analytics.save();
 
@@ -198,7 +198,7 @@ const getPlatformStats = asyncHandler(async (req, res) => {
     activeUsers,
     inactiveUsers,
     completedTests,
-    message: "Platform statistics retrieved successfully",
+    message: 'Platform statistics retrieved successfully',
   });
 });
 
@@ -211,17 +211,17 @@ const listAllUsers = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
 
   const users = await User.find()
-    .select("name email role isActive createdAt updatedAt _id")
+    .select('name email role isActive createdAt updatedAt _id')
     .skip(skip)
     .limit(limit);
 
-  const formattedUsers = users.map((user) => ({
+  const formattedUsers = users.map(user => ({
     name: user.name,
     email: user.email,
     role: user.role,
-    status: user.isActive ? "Active" : "Inactive", // Status based on isActive
-    createdDate: user.createdAt.toISOString().split("T")[0], // Format created date
-    modifiedDate: user.updatedAt.toISOString().split("T")[0], // Format modified date
+    status: user.isActive ? 'Active' : 'Inactive', // Status based on isActive
+    createdDate: user.createdAt.toISOString().split('T')[0], // Format created date
+    modifiedDate: user.updatedAt.toISOString().split('T')[0], // Format modified date
     userId: user._id,
   }));
 
@@ -241,7 +241,7 @@ const listAllUsers = asyncHandler(async (req, res) => {
 const toggleUserStatus = asyncHandler(async (req, res) => {
   const foundUser = await User.findById(req.params.userId);
   if (!foundUser) {
-    return res.status(404).json({ message: "User not found" });
+    return res.status(404).json({ message: 'User not found' });
   }
 
   // // Check if requester is Super Admin
@@ -276,12 +276,12 @@ const getMonthlyUserFlow = asyncHandler(async (req, res) => {
     },
     {
       $group: {
-        _id: { month: { $month: "$createdAt" }, role: "$role" },
+        _id: { month: { $month: '$createdAt' }, role: '$role' },
         count: { $sum: 1 },
       },
     },
     {
-      $sort: { "_id.month": 1 }, // Sort by month
+      $sort: { '_id.month': 1 }, // Sort by month
     },
   ]);
 
