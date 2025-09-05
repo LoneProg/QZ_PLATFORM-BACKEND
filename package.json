@@ -4,9 +4,14 @@
   "description": "Implementation of Backend Development API for QzPlatform",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+
+    "lint": "eslint 'src/**/*.{js,ts}' --quiet",
+    "lint:fix": "eslint 'src/**/*.{js,ts}' --quiet --fix",
+    "format": "prettier --check 'src/**/*.{js,ts,json,md}'",
+    "format:fix": "prettier --write 'src/**/*.{js,ts,json,md}'"
   },
   "repository": {
     "type": "git",
@@ -48,6 +53,15 @@
     "swagger-jsdoc": "^6.2.8"
   },
   "devDependencies": {
-    "swagger-ui-express": "^5.0.1"
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mongoose": "^5.11.96",
+    "@types/node": "^24.3.1",
+    "@types/nodemailer": "^7.0.1",
+    "swagger-ui-express": "^5.0.1",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.2"
   }
 }
