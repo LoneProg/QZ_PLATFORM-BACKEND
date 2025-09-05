@@ -17,14 +17,14 @@ const header = (title) => `
 `;
 
 //User Creation Mail Template
-const updateGroupTemplate = (name, groupName,email, randomPassword) => `
+const updateGroupTemplate = (name, groupName, email, randomPassword) => `
     <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">
         <!-- Banner -->
         ${banner()}
 
         <!-- Email Body -->
         <div style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            ${header('Welcome to QzPlatform!')}
+            ${header("Welcome to QzPlatform!")}
            <p>Dear ${name},</p>
 
                     <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
@@ -55,7 +55,7 @@ const createGroupTemplate = (name, groupName, email, randomPassword) => `
 
         <!-- Email Body -->
         <div style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            ${header('Welcome to QzPlatform!')}
+            ${header("Welcome to QzPlatform!")}
             <p>Dear ${name},</p>
 
                     <p>We are pleased to inform you that you have been added to the group "<strong>${groupName}</strong>" on QzPlatform. As part of this group, you will have access to various courses and assessments designed to enhance your learning experience.</p>
@@ -77,9 +77,7 @@ const createGroupTemplate = (name, groupName, email, randomPassword) => `
     </div>
 `;
 
-
-
 module.exports = {
-    createGroupTemplate,
-    updateGroupTemplate
+  createGroupTemplate,
+  updateGroupTemplate,
 };

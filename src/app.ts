@@ -9,13 +9,15 @@ import swaggerJsdoc from "swagger-jsdoc";
 const app = express();
 
 // Middleware Configuration
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://qzplatform.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "https://qzplatform.vercel.app"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  }),
+);
 
-app.options('*', cors()); // Preflight handling
+app.options("*", cors()); // Preflight handling
 app.use(express.json()); // Parse JSON
 app.use(morgan("dev"));
 
@@ -23,11 +25,11 @@ app.use(morgan("dev"));
 const port = process.env.PORT || 3000;
 const swaggerOptions = {
   definition: {
-    openapi: '3.0.0',
+    openapi: "3.0.0",
     info: {
-      title: 'QzPlatform API',
-      version: '1.0.0',
-      description: 'API documentation for QzPlatform',
+      title: "QzPlatform API",
+      version: "1.0.0",
+      description: "API documentation for QzPlatform",
     },
     servers: [
       {
@@ -35,11 +37,11 @@ const swaggerOptions = {
       },
     ],
   },
-  apis: ['./routes/*.js'],
+  apis: ["./routes/*.js"],
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Routes
 app.use("/api/users", require("./routes/userRoutes"));

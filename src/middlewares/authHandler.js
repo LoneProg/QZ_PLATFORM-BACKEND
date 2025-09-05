@@ -1,13 +1,13 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/Users'); // Import the User model
+const jwt = require("jsonwebtoken");
+const User = require("../models/Users"); // Import the User model
 
 // Token verification middleware
 const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1];
 
   if (token == null) {
-    return res.status(401).json({ message: 'Token is required' });
+    return res.status(401).json({ message: "Token is required" });
   }
 
   try {
@@ -15,10 +15,10 @@ const authenticateToken = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Fetch the full user details from the database using the ID in the token payload
-    const user = await User.findById(decoded.id).select('-password'); // Exclude password
+    const user = await User.findById(decoded.id).select("-password"); // Exclude password
 
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: "User not found" });
     }
 
     // Attach the user object to the request
@@ -27,7 +27,7 @@ const authenticateToken = async (req, res, next) => {
     // Proceed to the next middleware
     next();
   } catch (err) {
-    return res.status(403).json({ message: 'Invalid token' });
+    return res.status(403).json({ message: "Invalid token" });
   }
 };
 
@@ -35,7 +35,9 @@ const authenticateToken = async (req, res, next) => {
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'You do not have permission to perform this action' });
+      return res
+        .status(403)
+        .json({ message: "You do not have permission to perform this action" });
     }
     next();
   };

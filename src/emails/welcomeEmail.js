@@ -24,7 +24,7 @@ const registrationMailTemplate = (firstName, userRole) => `
 
         <!-- Email Body -->
         <div style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            ${header('Welcome to QzPlatform!')}
+            ${header("Welcome to QzPlatform!")}
             <p>Dear ${firstName},</p>
 
             <p>We are thrilled to have you join our community as a <strong>${userRole}</strong>. Your registration was successful, and you are now ready to explore all the features and tools we offer to help you create engaging and effective assessments.</p>
@@ -52,7 +52,7 @@ const forgotPasswordMailTemplate = (firstName, resetPasswordUrl) => `
 
         <!-- Email Body -->
         <div style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; max-width: 600px; margin: 0 auto; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-            ${header('Password Reset Request')}
+            ${header("Password Reset Request")}
             <p>Dear ${firstName},</p>
 
             <p>We received a request to reset the password for your account on <strong>QzPlatform</strong>. To proceed with the password reset, please click the link below:</p>
@@ -75,6 +75,6 @@ const forgotPasswordMailTemplate = (firstName, resetPasswordUrl) => `
 `;
 
 module.exports = {
-    registrationMailTemplate,
-    forgotPasswordMailTemplate
+  registrationMailTemplate,
+  forgotPasswordMailTemplate,
 };
