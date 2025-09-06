@@ -4,7 +4,7 @@
   "description": "Implementation of Backend Development API for QzPlatform",
   "main": "server.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "cross-env NODE_ENV=development ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint src/**/*.{js,ts} --quiet",
@@ -49,7 +49,8 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.9.14",
     "nodemon": "^3.1.4",
-    "swagger-jsdoc": "^6.2.8"
+    "swagger-jsdoc": "^6.2.8",
+    "zod": "^4.1.5"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
@@ -60,6 +61,7 @@
     "@types/nodemailer": "^7.0.1",
     "@typescript-eslint/eslint-plugin": "^8.42.0",
     "@typescript-eslint/parser": "^8.42.0",
+    "cross-env": "^10.0.0",
     "eslint": "^9.35.0",
     "mongoose": "^8.18.0",
     "prettier": "^3.6.2",

@@ -24,7 +24,7 @@ const UserSchema: Schema<IUser> = new Schema(
     },
     isActive: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

@@ -4,6 +4,7 @@ import errorHandler from './middlewares/errorHandler';
 import morgan from 'morgan';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
+import authRoutes from './routes/authRoutes'
 
 // Create Express app
 const app = express();
@@ -46,7 +47,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // Routes
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/groups', require('./routes/groupRoutes'));
-app.use('/api/auths', require('./routes/authRoutes'));
+app.use('/api/auths', authRoutes);
 app.use('/api/tests/:testId/questions', require('./routes/questionRoutes'));
 app.use('/api/tests', require('./routes/testRoutes'));
 app.use('/api/questions', require('./routes/questionBankRoutes'));
@@ -57,5 +58,6 @@ app.use('/api/waitlist', require('./routes/waitlistRoutes'));
 
 // Error Handler
 app.use(errorHandler);
+
 
 export default app;
